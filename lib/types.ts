@@ -88,6 +88,22 @@ export interface Message {
   property?: Property
 }
 
+export interface Expense {
+  id: string
+  user_id: string
+  property_id: string | null
+  category: 'repairs' | 'utilities' | 'insurance' | 'taxes' | 'management' | 'supplies' | 'landscaping' | 'cleaning' | 'other'
+  description: string
+  amount: number
+  date: string
+  vendor: string | null
+  receipt_url: string | null
+  notes: string | null
+  created_at: string
+  updated_at: string
+  property?: Property
+}
+
 export interface DashboardStats {
   totalProperties: number
   occupiedProperties: number

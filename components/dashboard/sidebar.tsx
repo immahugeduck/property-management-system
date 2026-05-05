@@ -13,6 +13,8 @@ import {
   LogOut,
   Menu,
   X,
+  FileText,
+  Receipt,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
@@ -24,8 +26,10 @@ const navigation = [
   { name: "Properties", href: "/dashboard/properties", icon: Building2 },
   { name: "Tenants", href: "/dashboard/tenants", icon: Users },
   { name: "Payments", href: "/dashboard/payments", icon: CreditCard },
+  { name: "Expenses", href: "/dashboard/expenses", icon: Receipt },
   { name: "Maintenance", href: "/dashboard/maintenance", icon: Wrench },
   { name: "Messages", href: "/dashboard/messages", icon: MessageSquare },
+  { name: "Reports", href: "/dashboard/reports", icon: FileText },
 ]
 
 export function Sidebar() {

@@ -3,7 +3,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Plus, CreditCard, DollarSign, User, Building2, AlertCircle, CheckCircle } from "lucide-react"
+import { Plus, CreditCard, DollarSign, User, Building2, AlertCircle, CheckCircle, RefreshCw } from "lucide-react"
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat("en-US", {
@@ -58,12 +58,20 @@ export default async function PaymentsPage() {
           <h1 className="text-2xl font-bold text-foreground">Payments</h1>
           <p className="text-muted-foreground">Track and manage rent payments</p>
         </div>
-        <Button asChild>
-          <Link href="/dashboard/payments/record">
-            <Plus className="mr-2 h-4 w-4" />
-            Record Payment
-          </Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button asChild variant="outline">
+            <Link href="/dashboard/payments/generate">
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Generate Rent
+            </Link>
+          </Button>
+          <Button asChild>
+            <Link href="/dashboard/payments/record">
+              <Plus className="mr-2 h-4 w-4" />
+              Record Payment
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
