@@ -69,7 +69,7 @@ export function Sidebar() {
         {/* Logo */}
         <div className="flex h-16 items-center gap-2 border-b border-border px-6">
           <Building2 className="h-6 w-6 text-primary" />
-          <span className="text-lg font-semibold text-foreground">PropFlow</span>
+          <span className="text-lg font-semibold text-foreground">Property HQ</span>
         </div>
 
         {/* Navigation */}

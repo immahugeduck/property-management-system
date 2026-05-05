@@ -62,7 +62,7 @@ export default function HomePage() {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Building2 className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold">PropFlow</span>
+            <span className="text-xl font-bold">Property HQ</span>
           </div>
           <div className="flex items-center gap-4">
             <Button variant="ghost" asChild>
@@ -84,7 +84,7 @@ export default function HomePage() {
             <span className="text-primary">Simplified</span>
           </h1>
           <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto text-pretty">
-            Optimize cash flow and streamline rent collection with PropFlow.
+            Optimize cash flow and streamline rent collection with Property HQ.
             Manage properties, track tenants, handle maintenance requests, and
             communicate with tenants - all in one place.
           </p>
@@ -111,7 +111,7 @@ export default function HomePage() {
             </h2>
             <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
               From tracking rent payments to handling maintenance requests,
-              PropFlow provides all the tools you need.
+              Property HQ provides all the tools you need.
             </p>
           </div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -138,7 +138,7 @@ export default function HomePage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-3xl font-bold text-foreground mb-6">
-                Why Choose PropFlow?
+                Why Choose Property HQ?
               </h2>
               <p className="text-muted-foreground mb-8">
                 Built for property managers and landlords who want to spend less
@@ -189,7 +189,7 @@ export default function HomePage() {
             Ready to Streamline Your Property Management?
           </h2>
           <p className="text-primary-foreground/80 mb-8 max-w-xl mx-auto">
-            Join property managers who trust PropFlow to handle their portfolio.
+            Join property managers who trust Property HQ to handle their portfolio.
             Start your free trial today.
           </p>
           <Button size="lg" variant="secondary" asChild>
@@ -207,7 +207,7 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <Building2 className="h-5 w-5 text-primary" />
-              <span className="font-semibold">PropFlow</span>
+              <span className="font-semibold">Property HQ</span>
             </div>
             <p className="text-sm text-muted-foreground">
               Property Management System
