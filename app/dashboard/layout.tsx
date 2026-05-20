@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { Sidebar } from "@/components/dashboard/sidebar"
+import { Header } from "@/components/dashboard/header"
 
 export default async function DashboardLayout({
   children,
@@ -17,11 +18,12 @@ export default async function DashboardLayout({
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
-      <main className="lg:pl-64">
-        <div className="min-h-screen p-4 lg:p-8">
+      <div className="lg:pl-64">
+        <Header userEmail={user.email} />
+        <main className="min-h-[calc(100vh-4rem)] p-4 lg:p-8">
           {children}
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   )
 }

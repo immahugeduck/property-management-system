@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Spinner } from "@/components/ui/spinner"
+import { Building2, MapPin, Home, DollarSign, FileText, Info } from "lucide-react"
 import type { Property } from "@/lib/types"
 
 interface Owner {
@@ -31,6 +32,45 @@ interface PropertyFormProps {
   owners?: Owner[]
 }
 
+function FormSection({ 
+  icon: Icon, 
+  title, 
+  description, 
+  children 
+}: { 
+  icon: React.ElementType
+  title: string
+  description: string
+  children: React.ReactNode 
+}) {
+  return (
+    <div className="space-y-4 pb-6 border-b border-border last:border-b-0 last:pb-0">
+      <div className="flex items-start gap-3">
+        <div className="p-2 rounded-lg bg-primary/10 mt-0.5">
+          <Icon className="h-4 w-4 text-primary" />
+        </div>
+        <div className="flex-1">
+          <h3 className="font-medium text-foreground">{title}</h3>
+          <p className="text-sm text-muted-foreground">{description}</p>
+        </div>
+      </div>
+      <div className="pl-11">
+        {children}
+      </div>
+    </div>
+  )
+}
+
+function FieldHint({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+      <Info className="h-3 w-3" />
+      {children}
+    </p>
+  )
+}
+
+export function PropertyForm({ property, userId }: PropertyFormProps) {
 export function PropertyForm({ property, userId, owners = [] }: PropertyFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -95,79 +135,116 @@ export function PropertyForm({ property, userId, owners = [] }: PropertyFormProp
   return (
     <form onSubmit={handleSubmit}>
       <Card>
-        <CardHeader>
-          <CardTitle>{isEditing ? "Edit Property" : "Add New Property"}</CardTitle>
-          <CardDescription>
-            {isEditing
-              ? "Update the property details below"
-              : "Enter the property details to add it to your portfolio"}
-          </CardDescription>
+        <CardHeader className="border-b">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-lg bg-primary/10">
+              <Building2 className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <CardTitle>{isEditing ? "Edit Property" : "Add New Property"}</CardTitle>
+              <CardDescription>
+                {isEditing
+                  ? "Update the property details below. Changes will be reflected across all reports."
+                  : "Add a property to your portfolio. This will appear in your inventory and can be assigned to tenants."}
+              </CardDescription>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="pt-6 space-y-6">
           {error && (
-            <div className="p-3 text-sm text-red-500 bg-red-500/10 rounded-lg">
+            <div className="p-3 text-sm text-red-500 bg-red-500/10 rounded-lg border border-red-500/20">
               {error}
             </div>
           )}
 
-          {/* Property Name */}
-          <div className="space-y-2">
-            <Label htmlFor="name">Property Name</Label>
-            <Input
-              id="name"
-              name="name"
-              placeholder="e.g., Oak Street Apartment"
-              defaultValue={property?.name}
-              required
-            />
-          </div>
-
-          {/* Address */}
-          <div className="space-y-2">
-            <Label htmlFor="address">Street Address</Label>
-            <Input
-              id="address"
-              name="address"
-              placeholder="123 Main Street"
-              defaultValue={property?.address}
-              required
-            />
-          </div>
-
-          {/* City, State, Zip */}
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div className="space-y-2">
-              <Label htmlFor="city">City</Label>
-              <Input
-                id="city"
-                name="city"
-                placeholder="City"
-                defaultValue={property?.city}
-                required
-              />
+          {/* Property Identification */}
+          <FormSection
+            icon={Building2}
+            title="Property Identification"
+            description="Give your property a memorable name and select its type. This helps you quickly identify properties in lists and reports."
+          >
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="name">Property Name *</Label>
+                <Input
+                  id="name"
+                  name="name"
+                  placeholder="e.g., Oak Street Apartment"
+                  defaultValue={property?.name}
+                  required
+                />
+                <FieldHint>Use a unique name like &quot;123 Oak St Unit A&quot; or &quot;Downtown Loft&quot;</FieldHint>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="property_type">Property Type *</Label>
+                <Select name="property_type" defaultValue={property?.property_type || "apartment"}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="apartment">Apartment</SelectItem>
+                    <SelectItem value="house">Single Family House</SelectItem>
+                    <SelectItem value="condo">Condominium</SelectItem>
+                    <SelectItem value="townhouse">Townhouse</SelectItem>
+                    <SelectItem value="commercial">Commercial Space</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FieldHint>Property type affects reporting categories</FieldHint>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="state">State</Label>
-              <Input
-                id="state"
-                name="state"
-                placeholder="State"
-                defaultValue={property?.state}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="zip_code">ZIP Code</Label>
-              <Input
-                id="zip_code"
-                name="zip_code"
-                placeholder="12345"
-                defaultValue={property?.zip_code}
-                required
-              />
-            </div>
-          </div>
+          </FormSection>
 
+          {/* Location Details */}
+          <FormSection
+            icon={MapPin}
+            title="Location Details"
+            description="Enter the complete address for the property. This will be used for tenant communications, maintenance scheduling, and reports."
+          >
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="address">Street Address *</Label>
+                <Input
+                  id="address"
+                  name="address"
+                  placeholder="123 Main Street, Unit 4B"
+                  defaultValue={property?.address}
+                  required
+                />
+                <FieldHint>Include unit, suite, or apartment number if applicable</FieldHint>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="space-y-2">
+                  <Label htmlFor="city">City *</Label>
+                  <Input
+                    id="city"
+                    name="city"
+                    placeholder="San Francisco"
+                    defaultValue={property?.city}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="state">State *</Label>
+                  <Input
+                    id="state"
+                    name="state"
+                    placeholder="CA"
+                    defaultValue={property?.state}
+                    required
+                    maxLength={2}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="zip_code">ZIP Code *</Label>
+                  <Input
+                    id="zip_code"
+                    name="zip_code"
+                    placeholder="94102"
+                    defaultValue={property?.zip_code}
+                    required
+                  />
+                </div>
+              </div>
           {/* Owner */}
           {owners.length > 0 && (
             <div className="space-y-2">
@@ -206,95 +283,126 @@ export function PropertyForm({ property, userId, owners = [] }: PropertyFormProp
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <Select name="status" defaultValue={property?.status || "vacant"}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="vacant">Vacant</SelectItem>
-                  <SelectItem value="occupied">Occupied</SelectItem>
-                  <SelectItem value="maintenance">Under Maintenance</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          </FormSection>
 
-          {/* Bedrooms, Bathrooms, Square Feet */}
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div className="space-y-2">
-              <Label htmlFor="bedrooms">Bedrooms</Label>
-              <Input
-                id="bedrooms"
-                name="bedrooms"
-                type="number"
-                min="0"
-                defaultValue={property?.bedrooms || 1}
-                required
-              />
+          {/* Property Specifications */}
+          <FormSection
+            icon={Home}
+            title="Property Specifications"
+            description="Enter the physical details of the property. These help calculate comparable rates and attract potential tenants."
+          >
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="space-y-2">
+                <Label htmlFor="bedrooms">Bedrooms *</Label>
+                <Input
+                  id="bedrooms"
+                  name="bedrooms"
+                  type="number"
+                  min="0"
+                  defaultValue={property?.bedrooms || 1}
+                  required
+                />
+                <FieldHint>Enter 0 for studio apartments</FieldHint>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="bathrooms">Bathrooms *</Label>
+                <Input
+                  id="bathrooms"
+                  name="bathrooms"
+                  type="number"
+                  min="0"
+                  step="0.5"
+                  defaultValue={property?.bathrooms || 1}
+                  required
+                />
+                <FieldHint>Use .5 for half baths</FieldHint>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="square_feet">Square Feet</Label>
+                <Input
+                  id="square_feet"
+                  name="square_feet"
+                  type="number"
+                  min="0"
+                  placeholder="Optional"
+                  defaultValue={property?.square_feet || ""}
+                />
+                <FieldHint>Total livable square footage</FieldHint>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="bathrooms">Bathrooms</Label>
-              <Input
-                id="bathrooms"
-                name="bathrooms"
-                type="number"
-                min="0"
-                step="0.5"
-                defaultValue={property?.bathrooms || 1}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="square_feet">Square Feet</Label>
-              <Input
-                id="square_feet"
-                name="square_feet"
-                type="number"
-                min="0"
-                placeholder="Optional"
-                defaultValue={property?.square_feet || ""}
-              />
-            </div>
-          </div>
+          </FormSection>
 
-          {/* Monthly Rent */}
-          <div className="space-y-2">
-            <Label htmlFor="monthly_rent">Monthly Rent ($)</Label>
-            <Input
-              id="monthly_rent"
-              name="monthly_rent"
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="0.00"
-              defaultValue={property?.monthly_rent || ""}
-              required
-            />
-          </div>
+          {/* Financial Details */}
+          <FormSection
+            icon={DollarSign}
+            title="Financial Details"
+            description="Set the monthly rent for this property. This is used to generate rent invoices and calculate expected revenue in reports."
+          >
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="monthly_rent">Monthly Rent *</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                  <Input
+                    id="monthly_rent"
+                    name="monthly_rent"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                    className="pl-7"
+                    defaultValue={property?.monthly_rent || ""}
+                    required
+                  />
+                </div>
+                <FieldHint>Base monthly rent before utilities or fees</FieldHint>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="status">Occupancy Status *</Label>
+                <Select name="status" defaultValue={property?.status || "vacant"}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="vacant">Vacant - Ready to Rent</SelectItem>
+                    <SelectItem value="occupied">Occupied - Tenant Assigned</SelectItem>
+                    <SelectItem value="maintenance">Under Maintenance</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FieldHint>Status updates automatically when tenants are assigned</FieldHint>
+              </div>
+            </div>
+          </FormSection>
 
-          {/* Notes */}
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea
-              id="notes"
-              name="notes"
-              placeholder="Additional notes about the property..."
-              defaultValue={property?.notes || ""}
-              rows={3}
-            />
-          </div>
+          {/* Additional Information */}
+          <FormSection
+            icon={FileText}
+            title="Additional Information"
+            description="Add any notes about the property such as amenities, parking details, HOA rules, or special considerations."
+          >
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                name="notes"
+                placeholder="e.g., Includes in-unit washer/dryer, 1 covered parking spot, HOA covers water..."
+                defaultValue={property?.notes || ""}
+                rows={4}
+              />
+              <FieldHint>These notes are visible only to you and help track important property details</FieldHint>
+            </div>
+          </FormSection>
 
           {/* Actions */}
-          <div className="flex gap-4 pt-4">
-            <Button type="submit" disabled={loading}>
+          <div className="flex gap-4 pt-4 border-t">
+            <Button type="submit" disabled={loading} size="lg">
               {loading && <Spinner className="mr-2 h-4 w-4" />}
-              {isEditing ? "Update Property" : "Add Property"}
+              {isEditing ? "Save Changes" : "Add Property"}
             </Button>
             <Button
               type="button"
               variant="outline"
+              size="lg"
               onClick={() => router.back()}
               disabled={loading}
             >

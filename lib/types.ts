@@ -92,6 +92,33 @@ export interface Message {
   property?: Property
 }
 
+export interface Expense {
+  id: string
+  user_id: string
+  property_id: string | null
+  category: 'repairs' | 'utilities' | 'insurance' | 'taxes' | 'management' | 'supplies' | 'landscaping' | 'cleaning' | 'other'
+  description: string
+  amount: number
+  date: string
+  vendor: string | null
+  receipt_url: string | null
+  notes: string | null
+  created_at: string
+  updated_at: string
+  property?: Property
+}
+
+export interface Notification {
+  id: string
+  user_id: string
+  recipient_type: 'manager' | 'tenant'
+  type: 'payment_received' | 'payment_due' | 'payment_overdue' | 'maintenance_new' | 'maintenance_updated' | 'maintenance_completed' | 'message_received' | 'lease_expiring' | 'tenant_added' | 'general'
+  title: string
+  message: string
+  link: string | null
+  related_id: string | null
+  is_read: boolean
+  created_at: string
 export interface PropertyOwner {
   id: string
   user_id: string
