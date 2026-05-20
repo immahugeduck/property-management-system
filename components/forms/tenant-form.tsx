@@ -18,6 +18,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Spinner } from "@/components/ui/spinner"
 import { Users, Mail, Building2, Calendar, DollarSign, FileText, Info, AlertCircle } from "lucide-react"
 import type { Tenant, Property } from "@/lib/types"
+import { createNotification, notificationTemplates } from "@/lib/notifications"
 
 interface TenantFormProps {
   tenant?: Tenant
@@ -130,6 +131,20 @@ export function TenantForm({ tenant, properties, userId, defaultPropertyId }: Te
           .update({ status: "occupied", updated_at: new Date().toISOString() })
           .eq("id", propertyId)
       }
+
+      // Create notification for new tenant
+      const property = properties.find(p => p.id === propertyId)
+      const template = notificationTemplates.tenantAdded(
+        `${data.first_name} ${data.last_name}`,
+        property?.name || "No property assigned"
+      )
+      await createNotification({
+        userId,
+        type: template.type,
+        title: template.title,
+        message: template.message,
+        link: "/dashboard/tenants",
+      }).catch(() => {})
     }
 
     router.push("/dashboard/tenants")

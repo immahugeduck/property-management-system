@@ -76,6 +76,8 @@ export default async function MaintenanceDetailPage({
   const { id } = await params
   const supabase = await createClient()
 
+  const { data: { user } } = await supabase.auth.getUser()
+
   const { data: request, error } = await supabase
     .from("maintenance_requests")
     .select("*, property:properties(*), tenant:tenants(*)")
@@ -128,7 +130,13 @@ export default async function MaintenanceDetailPage({
             )}
           </div>
           <div className="flex gap-2 flex-wrap">
-            <UpdateStatusButton requestId={id} currentStatus={request.status} />
+            <UpdateStatusButton 
+              requestId={id} 
+              currentStatus={request.status}
+              requestTitle={request.title}
+              propertyName={request.property?.name || "Property"}
+              userId={user?.id || ""}
+            />
             <Button variant="outline" asChild>
               <Link href={`/dashboard/maintenance/${id}/edit`}>
                 <Edit className="mr-2 h-4 w-4" />

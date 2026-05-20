@@ -12,10 +12,14 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { ChevronDown, Clock, Play, CheckCircle, X } from "lucide-react"
 import { Spinner } from "@/components/ui/spinner"
+import { createNotification, notificationTemplates } from "@/lib/notifications"
 
 interface UpdateStatusButtonProps {
   requestId: string
   currentStatus: string
+  requestTitle: string
+  propertyName: string
+  userId: string
 }
 
 const statuses = [
@@ -25,7 +29,7 @@ const statuses = [
   { value: "cancelled", label: "Cancelled", icon: X },
 ]
 
-export function UpdateStatusButton({ requestId, currentStatus }: UpdateStatusButtonProps) {
+export function UpdateStatusButton({ requestId, currentStatus, requestTitle, propertyName, userId }: UpdateStatusButtonProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
@@ -52,6 +56,27 @@ export function UpdateStatusButton({ requestId, currentStatus }: UpdateStatusBut
 
     if (error) {
       console.error("Error updating status:", error)
+    } else {
+      // Create notification for status update
+      if (newStatus === "completed") {
+        const template = notificationTemplates.maintenanceCompleted(propertyName, requestTitle)
+        await createNotification({
+          userId,
+          type: template.type,
+          title: template.title,
+          message: template.message,
+          link: `/dashboard/maintenance/${requestId}`,
+        }).catch(() => {})
+      } else {
+        const template = notificationTemplates.maintenanceUpdated(propertyName, requestTitle, newStatus)
+        await createNotification({
+          userId,
+          type: template.type,
+          title: template.title,
+          message: template.message,
+          link: `/dashboard/maintenance/${requestId}`,
+        }).catch(() => {})
+      }
     }
 
     setLoading(false)
