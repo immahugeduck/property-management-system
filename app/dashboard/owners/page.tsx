@@ -69,7 +69,7 @@ export default async function OwnersPage() {
                   {/* Avatar + Name */}
                   <div className="flex items-start gap-4 mb-4">
                     <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-lg shrink-0 group-hover:bg-primary/20 transition-colors">
-                      {owner.first_name[0]}{owner.last_name[0]}
+                      {owner.first_name?.[0] ?? '?'}{owner.last_name?.[0] ?? '?'}
                     </div>
                     <div className="min-w-0">
                       <h3 className="font-semibold text-base leading-tight">

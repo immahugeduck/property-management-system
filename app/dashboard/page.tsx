@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { redirect } from "next/navigation"
 import { StatsCard } from "@/components/dashboard/stats-card"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -42,6 +43,7 @@ function formatDate(dateString: string) {
 export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect("/auth/login")
 
   const now = new Date()
 

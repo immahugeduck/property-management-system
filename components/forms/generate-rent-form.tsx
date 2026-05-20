@@ -14,7 +14,7 @@ import { CreditCard, Calendar, Users, Info, CheckCircle2, AlertCircle, Building2
 import type { Tenant, Property } from "@/lib/types"
 
 interface TenantWithProperty extends Tenant {
-  property: Property | null
+  property: Property | undefined
 }
 
 interface GenerateRentFormProps {
