@@ -14,7 +14,6 @@ import {
   Menu,
   X,
   FileText,
-  Receipt,
   BarChart3,
   UserCircle,
   Settings,
@@ -25,15 +24,6 @@ import { useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 
-const navigation = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Properties", href: "/dashboard/properties", icon: Building2 },
-  { name: "Tenants", href: "/dashboard/tenants", icon: Users },
-  { name: "Payments", href: "/dashboard/payments", icon: CreditCard },
-  { name: "Expenses", href: "/dashboard/expenses", icon: Receipt },
-  { name: "Maintenance", href: "/dashboard/maintenance", icon: Wrench },
-  { name: "Messages", href: "/dashboard/messages", icon: MessageSquare },
-  { name: "Reports", href: "/dashboard/reports", icon: FileText },
 const navSections = [
   {
     label: "Overview",
@@ -108,9 +98,6 @@ export function Sidebar() {
         )}
       >
         {/* Logo */}
-        <div className="flex h-16 items-center gap-2 border-b border-border px-6">
-          <Building2 className="h-6 w-6 text-primary" />
-          <span className="text-lg font-semibold text-foreground">Property HQ</span>
         <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-5">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
             <Building2 className="h-4 w-4 text-primary-foreground" />

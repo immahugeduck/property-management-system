@@ -70,7 +70,6 @@ function FieldHint({ children }: { children: React.ReactNode }) {
   )
 }
 
-export function PropertyForm({ property, userId }: PropertyFormProps) {
 export function PropertyForm({ property, userId, owners = [] }: PropertyFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -245,7 +244,10 @@ export function PropertyForm({ property, userId, owners = [] }: PropertyFormProp
                   />
                 </div>
               </div>
-          {/* Owner */}
+            </div>
+          </FormSection>
+
+          {/* Owner Assignment */}
           {owners.length > 0 && (
             <div className="space-y-2">
               <Label htmlFor="owner_id">Property Owner</Label>
@@ -265,25 +267,6 @@ export function PropertyForm({ property, userId, owners = [] }: PropertyFormProp
               </Select>
             </div>
           )}
-
-          {/* Property Type and Status */}
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="property_type">Property Type</Label>
-              <Select name="property_type" defaultValue={property?.property_type || "apartment"}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="apartment">Apartment</SelectItem>
-                  <SelectItem value="house">House</SelectItem>
-                  <SelectItem value="condo">Condo</SelectItem>
-                  <SelectItem value="townhouse">Townhouse</SelectItem>
-                  <SelectItem value="commercial">Commercial</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </FormSection>
 
           {/* Property Specifications */}
           <FormSection
