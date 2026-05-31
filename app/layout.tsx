@@ -7,9 +7,9 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'Property HQ — Professional Property Management',
-  description: 'Manage properties, tenants, invoices, and maintenance from one powerful platform.',
-  generator: 'Property HQ',
+  title: 'Property HQ - Property Management',
+  description: 'Your command center for property management, rent collection, and tenant communication',
+  generator: 'v0.app',
   icons: {
     icon: [
       {

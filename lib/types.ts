@@ -13,10 +13,8 @@ export interface Property {
   monthly_rent: number
   status: 'vacant' | 'occupied' | 'maintenance'
   notes: string | null
-  owner_id: string | null
   created_at: string
   updated_at: string
-  owner?: PropertyOwner
 }
 
 export interface Tenant {
@@ -48,8 +46,6 @@ export interface RentPayment {
   paid_date: string | null
   status: 'pending' | 'paid' | 'overdue' | 'partial'
   payment_method: string | null
-  invoice_number: string | null
-  is_recurring: boolean
   notes: string | null
   created_at: string
   updated_at: string
@@ -119,24 +115,6 @@ export interface Notification {
   related_id: string | null
   is_read: boolean
   created_at: string
-}
-
-export interface PropertyOwner {
-  id: string
-  user_id: string
-  first_name: string
-  last_name: string
-  email: string | null
-  phone: string | null
-  company_name: string | null
-  address: string | null
-  city: string | null
-  state: string | null
-  zip_code: string | null
-  notes: string | null
-  created_at: string
-  updated_at: string
-  properties?: Property[]
 }
 
 export interface DashboardStats {

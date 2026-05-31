@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/client"
+import { createClient } from "@/lib/supabase/server"
 
 type NotificationType =
   | "payment_received"
@@ -31,7 +31,7 @@ export async function createNotification({
   link,
   relatedId,
 }: CreateNotificationParams) {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { data, error } = await supabase.from("notifications").insert({
     user_id: userId,
