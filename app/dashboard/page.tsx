@@ -39,17 +39,20 @@ export default async function DashboardPage() {
     tenantsResult,
     paymentsResult,
     maintenanceResult,
+    maintenanceStatusResult,
   ] = await Promise.all([
     supabase.from("properties").select("id, status, monthly_rent"),
     supabase.from("tenants").select("id, status"),
     supabase.from("rent_payments").select("id, amount, status, due_date"),
     supabase.from("maintenance_requests").select("id, status, urgency, title, property_id, created_at").order("created_at", { ascending: false }).limit(5),
+    supabase.from("maintenance_requests").select("status"),
   ])
 
   const properties = propertiesResult.data || []
   const tenants = tenantsResult.data || []
   const payments = paymentsResult.data || []
   const recentMaintenance = maintenanceResult.data || []
+  const allMaintenance = maintenanceStatusResult.data || []
 
   // Calculate stats
   const totalProperties = properties.length
@@ -61,7 +64,7 @@ export default async function DashboardPage() {
     .reduce((sum, p) => sum + (p.monthly_rent || 0), 0)
   const pendingPayments = payments.filter(p => p.status === "pending").length
   const overduePayments = payments.filter(p => p.status === "overdue").length
-  const openMaintenanceRequests = recentMaintenance.filter(m => m.status === "open" || m.status === "in_progress").length
+  const openMaintenanceRequests = allMaintenance.filter(m => m.status === "open" || m.status === "in_progress").length
 
   // Get recent payments
   const { data: recentPayments } = await supabase

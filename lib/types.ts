@@ -33,7 +33,24 @@ export interface Tenant {
   notes: string | null
   created_at: string
   updated_at: string
-  property?: Property
+  property?: Property | null
+}
+
+export interface PropertyOwner {
+  id: string
+  user_id: string
+  first_name: string
+  last_name: string
+  email: string | null
+  phone: string | null
+  company_name: string | null
+  address: string | null
+  city: string | null
+  state: string | null
+  zip_code: string | null
+  notes: string | null
+  created_at: string
+  updated_at: string
 }
 
 export interface RentPayment {
