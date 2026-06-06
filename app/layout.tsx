@@ -10,6 +10,7 @@ export const metadata: Metadata = {
   title: 'Property HQ - Property Management',
   description: 'Your command center for property management, rent collection, and tenant communication',
   generator: 'v0.app',
+  applicationName: 'Property HQ',
   icons: {
     icon: [
       {
