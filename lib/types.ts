@@ -31,9 +31,41 @@ export interface Tenant {
   security_deposit: number
   status: 'active' | 'inactive' | 'pending'
   notes: string | null
+  auth_user_id: string | null
+  portal_enabled: boolean
+  invited_at: string | null
+  portal_activated_at: string | null
   created_at: string
   updated_at: string
   property?: Property | null
+}
+
+export interface TenantInvite {
+  id: string
+  user_id: string
+  tenant_id: string
+  email: string
+  token: string
+  status: 'pending' | 'accepted' | 'expired'
+  expires_at: string
+  accepted_at: string | null
+  created_at: string
+  tenant?: Tenant
+}
+
+export interface RentSchedule {
+  id: string
+  user_id: string
+  tenant_id: string
+  property_id: string | null
+  amount: number
+  day_of_month: number
+  active: boolean
+  last_generated_for: string | null
+  created_at: string
+  updated_at: string
+  tenant?: Tenant
+  property?: Property
 }
 
 export interface PropertyOwner {
@@ -64,6 +96,12 @@ export interface RentPayment {
   status: 'pending' | 'paid' | 'overdue' | 'partial'
   payment_method: string | null
   notes: string | null
+  is_recurring: boolean
+  recurring_day: number | null
+  rent_schedule_id: string | null
+  stripe_session_id: string | null
+  stripe_payment_intent: string | null
+  receipt_number: string | null
   created_at: string
   updated_at: string
   tenant?: Tenant
@@ -99,6 +137,7 @@ export interface Message {
   subject: string
   body: string
   direction: 'inbound' | 'outbound'
+  sender_role: 'manager' | 'tenant'
   is_read: boolean
   created_at: string
   tenant?: Tenant
@@ -125,7 +164,7 @@ export interface Notification {
   id: string
   user_id: string
   recipient_type: 'manager' | 'tenant'
-  type: 'payment_received' | 'payment_due' | 'payment_overdue' | 'maintenance_new' | 'maintenance_updated' | 'maintenance_completed' | 'message_received' | 'lease_expiring' | 'tenant_added' | 'general'
+  type: 'payment_received' | 'payment_due' | 'payment_overdue' | 'maintenance_new' | 'maintenance_updated' | 'maintenance_completed' | 'message_received' | 'lease_expiring' | 'tenant_added' | 'invoice_issued' | 'general'
   title: string
   message: string
   link: string | null

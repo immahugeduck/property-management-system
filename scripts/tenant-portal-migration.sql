@@ -38,6 +38,7 @@ ALTER TABLE tenant_invites ENABLE ROW LEVEL SECURITY;
 -- ------------------------------------------------------------
 ALTER TABLE rent_payments ADD COLUMN IF NOT EXISTS is_recurring BOOLEAN DEFAULT FALSE;
 ALTER TABLE rent_payments ADD COLUMN IF NOT EXISTS recurring_day INT DEFAULT 1; -- day of month invoice issues
+ALTER TABLE rent_payments ADD COLUMN IF NOT EXISTS rent_schedule_id UUID;
 ALTER TABLE rent_payments ADD COLUMN IF NOT EXISTS stripe_session_id TEXT;
 ALTER TABLE rent_payments ADD COLUMN IF NOT EXISTS stripe_payment_intent TEXT;
 ALTER TABLE rent_payments ADD COLUMN IF NOT EXISTS receipt_number TEXT;
@@ -57,6 +58,9 @@ CREATE TABLE IF NOT EXISTS rent_schedules (
 );
 CREATE INDEX IF NOT EXISTS idx_rent_schedules_tenant_id ON rent_schedules(tenant_id);
 ALTER TABLE rent_schedules ENABLE ROW LEVEL SECURITY;
+
+-- Track who sent each message (manager vs tenant) for the chat thread
+ALTER TABLE messages ADD COLUMN IF NOT EXISTS sender_role TEXT NOT NULL DEFAULT 'manager';
 
 -- ------------------------------------------------------------
 -- 4. Helper: does the current auth user own this tenant record?

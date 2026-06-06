@@ -10,6 +10,7 @@ type NotificationType =
   | "message_received"
   | "lease_expiring"
   | "tenant_added"
+  | "invoice_issued"
   | "general"
 
 interface CreateNotificationParams {
@@ -106,5 +107,24 @@ export const notificationTemplates = {
     type: "tenant_added" as NotificationType,
     title: "New Tenant Added",
     message: `${tenantName} has been added to ${propertyName}`,
+  }),
+
+  // --- Tenant-facing templates (recipient_type: "tenant") ---
+  invoiceIssued: (amount: number, periodLabel: string) => ({
+    type: "invoice_issued" as NotificationType,
+    title: "New Rent Invoice",
+    message: `Your rent invoice of $${amount.toLocaleString()} for ${periodLabel} is ready. Open your portal to pay.`,
+  }),
+
+  receiptReady: (amount: number, periodLabel: string) => ({
+    type: "payment_received" as NotificationType,
+    title: "Payment Received — Receipt Available",
+    message: `We received your $${amount.toLocaleString()} payment for ${periodLabel}. Your receipt is available in your portal.`,
+  }),
+
+  tenantNewMessage: () => ({
+    type: "message_received" as NotificationType,
+    title: "New Message",
+    message: `You have a new message from your property manager. Open your portal to read and reply.`,
   }),
 }

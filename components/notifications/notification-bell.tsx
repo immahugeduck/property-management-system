@@ -25,6 +25,7 @@ const notificationIcons: Record<string, React.ElementType> = {
   message_received: MessageSquare,
   lease_expiring: AlertTriangle,
   tenant_added: Users,
+  invoice_issued: CreditCard,
   general: Info,
 }
 
@@ -38,6 +39,7 @@ const notificationColors: Record<string, string> = {
   message_received: "text-purple-500 bg-purple-500/10",
   lease_expiring: "text-amber-500 bg-amber-500/10",
   tenant_added: "text-blue-500 bg-blue-500/10",
+  invoice_issued: "text-amber-500 bg-amber-500/10",
   general: "text-muted-foreground bg-muted",
 }
 
