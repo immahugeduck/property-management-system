@@ -1,5 +1,4 @@
 import { createServerClient } from '@supabase/ssr'
-import type { CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function updateSession(request: NextRequest) {
@@ -17,7 +16,7 @@ export async function updateSession(request: NextRequest) {
         getAll() {
           return request.cookies.getAll()
         },
-        setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
+        setAll(cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value),
           )
@@ -43,8 +42,10 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   if (
-    // if the user is not logged in and the dashboard is accessed, redirect to the login page
-    (request.nextUrl.pathname.startsWith('/dashboard') || request.nextUrl.pathname.startsWith('/protected')) &&
+    // if the user is not logged in and a protected area is accessed, redirect to login
+    (request.nextUrl.pathname.startsWith('/dashboard') ||
+      request.nextUrl.pathname.startsWith('/portal') ||
+      request.nextUrl.pathname.startsWith('/protected')) &&
     !user
   ) {
     // no user, potentially respond by redirecting the user to the login page

@@ -17,6 +17,8 @@ import {
   CreditCard,
 } from "lucide-react"
 import { DeleteTenantButton } from "@/components/tenants/delete-tenant-button"
+import { PortalAccessCard } from "@/components/tenants/portal-access-card"
+import { RentScheduleCard } from "@/components/tenants/rent-schedule-card"
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat("en-US", {
@@ -81,6 +83,14 @@ export default async function TenantDetailPage({
     .eq("tenant_id", id)
     .order("created_at", { ascending: false })
     .limit(5)
+
+  // Fetch active recurring rent schedule
+  const { data: schedule } = await supabase
+    .from("rent_schedules")
+    .select("*")
+    .eq("tenant_id", id)
+    .eq("active", true)
+    .maybeSingle()
 
   const totalPaid = (payments || [])
     .filter(p => p.status === "paid")
@@ -252,9 +262,9 @@ export default async function TenantDetailPage({
               </Link>
             </Button>
             <Button variant="outline" className="w-full justify-start" asChild>
-              <Link href={`/dashboard/messages/new?tenant=${id}`}>
+              <Link href={`/dashboard/messages/${id}/chat`}>
                 <MessageSquare className="mr-2 h-4 w-4" />
-                Send Message
+                Open Chat
               </Link>
             </Button>
             {tenant.property && (
@@ -267,6 +277,23 @@ export default async function TenantDetailPage({
             )}
           </CardContent>
         </Card>
+      </div>
+
+      {/* Portal Access & Recurring Rent */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <PortalAccessCard
+          tenantId={id}
+          hasEmail={Boolean(tenant.email)}
+          authUserId={tenant.auth_user_id ?? null}
+          invitedAt={tenant.invited_at ?? null}
+          portalActivatedAt={tenant.portal_activated_at ?? null}
+        />
+        <RentScheduleCard
+          tenantId={id}
+          propertyId={tenant.property_id ?? null}
+          defaultAmount={tenant.rent_amount}
+          schedule={schedule ?? null}
+        />
       </div>
 
       {/* Payment History */}

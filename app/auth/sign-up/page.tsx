@@ -2,15 +2,21 @@
 
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Building2 } from 'lucide-react'
 import Link from 'next/link'
+import { Building2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
-export default function SignUpPage() {
+export default function Page() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [repeatPassword, setRepeatPassword] = useState('')
@@ -31,7 +37,7 @@ export default function SignUpPage() {
     }
 
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -41,14 +47,9 @@ export default function SignUpPage() {
         },
       })
       if (error) throw error
-      
-      // If a session is returned, email confirmation is off, so we can go to dashboard.
-      // If no session is returned, email confirmation is required, so redirect to success page.
-      if (data.session) {
-        router.push('/dashboard')
-      } else {
-        router.push('/auth/sign-up-success')
-      }
+      // For development, redirect directly to dashboard since email confirmation may be disabled
+      // In production with email confirmation enabled, this would go to sign-up-success
+      router.push('/dashboard')
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'An error occurred')
     } finally {
@@ -114,10 +115,13 @@ export default function SignUpPage() {
                     {isLoading ? 'Creating an account...' : 'Sign up'}
                   </Button>
                 </div>
-                <div className="mt-4 text-center text-sm text-muted-foreground">
+                <div className="mt-4 text-center text-sm">
                   Already have an account?{' '}
-                  <Link href="/auth/login" className="text-primary hover:underline font-medium">
-                    Sign in
+                  <Link
+                    href="/auth/login"
+                    className="underline underline-offset-4"
+                  >
+                    Login
                   </Link>
                 </div>
               </form>

@@ -1,15 +1,17 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { Toaster } from '@/components/ui/sonner'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'Property HQ — Professional Property Management',
-  description: 'Manage properties, tenants, invoices, and maintenance from one powerful platform.',
-  generator: 'Property HQ',
+  title: 'Property HQ - Property Management',
+  description: 'Your command center for property management, rent collection, and tenant communication',
+  generator: 'v0.app',
+  applicationName: 'Property HQ',
   icons: {
     icon: [
       {
@@ -38,6 +40,7 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className="font-sans antialiased bg-background">
         {children}
+        <Toaster />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

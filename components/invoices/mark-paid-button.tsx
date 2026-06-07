@@ -2,7 +2,8 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
+import { toast } from "sonner"
+import { markInvoicePaid } from "@/app/actions/mark-invoice-paid"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -38,21 +39,14 @@ export function MarkPaidButton({ invoiceId }: MarkPaidButtonProps) {
 
   const handleMarkPaid = async () => {
     setLoading(true)
-    const supabase = createClient()
-    const { error } = await supabase
-      .from("rent_payments")
-      .update({
-        status: "paid",
-        paid_date: paidDate,
-        payment_method: method,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", invoiceId)
-
+    const res = await markInvoicePaid(invoiceId, method, paidDate)
     setLoading(false)
-    if (!error) {
+    if (res.ok) {
       setOpen(false)
+      toast.success("Payment recorded. Receipt sent to the tenant.")
       router.refresh()
+    } else {
+      toast.error(res.error || "Could not record payment.")
     }
   }
 

@@ -19,17 +19,9 @@ import { Spinner } from "@/components/ui/spinner"
 import { Building2, MapPin, Home, DollarSign, FileText, Info } from "lucide-react"
 import type { Property } from "@/lib/types"
 
-interface Owner {
-  id: string
-  first_name: string
-  last_name: string
-  company_name: string | null
-}
-
 interface PropertyFormProps {
   property?: Property
   userId: string
-  owners?: Owner[]
 }
 
 function FormSection({ 
@@ -70,7 +62,7 @@ function FieldHint({ children }: { children: React.ReactNode }) {
   )
 }
 
-export function PropertyForm({ property, userId, owners = [] }: PropertyFormProps) {
+export function PropertyForm({ property, userId }: PropertyFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -83,10 +75,8 @@ export function PropertyForm({ property, userId, owners = [] }: PropertyFormProp
     setError(null)
 
     const formData = new FormData(e.currentTarget)
-    const ownerIdVal = formData.get("owner_id") as string
     const data = {
       user_id: userId,
-      owner_id: ownerIdVal && ownerIdVal !== "none" ? ownerIdVal : null,
       name: formData.get("name") as string,
       address: formData.get("address") as string,
       city: formData.get("city") as string,
@@ -246,27 +236,6 @@ export function PropertyForm({ property, userId, owners = [] }: PropertyFormProp
               </div>
             </div>
           </FormSection>
-
-          {/* Owner Assignment */}
-          {owners.length > 0 && (
-            <div className="space-y-2">
-              <Label htmlFor="owner_id">Property Owner</Label>
-              <Select name="owner_id" defaultValue={(property as any)?.owner_id || "none"}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select owner (optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No owner assigned</SelectItem>
-                  {owners.map((owner) => (
-                    <SelectItem key={owner.id} value={owner.id}>
-                      {owner.first_name} {owner.last_name}
-                      {owner.company_name ? ` (${owner.company_name})` : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
 
           {/* Property Specifications */}
           <FormSection

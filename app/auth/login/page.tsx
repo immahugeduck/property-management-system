@@ -2,15 +2,22 @@
 
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Building2 } from 'lucide-react'
 import Link from 'next/link'
+import { Building2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { resolveHomePath } from '@/app/actions/resolve-home'
 
-export default function LoginPage() {
+export default function Page() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -24,9 +31,14 @@ export default function LoginPage() {
     setError(null)
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
       if (error) throw error
-      router.push('/dashboard')
+      const home = await resolveHomePath()
+      router.push(home)
+      router.refresh()
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'An error occurred')
     } finally {
@@ -80,9 +92,12 @@ export default function LoginPage() {
                     {isLoading ? 'Logging in...' : 'Login'}
                   </Button>
                 </div>
-                <div className="mt-4 text-center text-sm text-muted-foreground">
+                <div className="mt-4 text-center text-sm">
                   Don&apos;t have an account?{' '}
-                  <Link href="/auth/sign-up" className="text-primary hover:underline font-medium">
+                  <Link
+                    href="/auth/sign-up"
+                    className="underline underline-offset-4"
+                  >
                     Sign up
                   </Link>
                 </div>
