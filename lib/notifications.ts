@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import type { SupabaseClient } from "@supabase/supabase-js"
 
 type NotificationType =
   | "payment_received"
@@ -21,6 +22,9 @@ interface CreateNotificationParams {
   message: string
   link?: string
   relatedId?: string
+  /** Optional Supabase client. Pass a service-role client from contexts without a
+   * user session (e.g. Stripe webhooks). Defaults to the cookie-based server client. */
+  client?: SupabaseClient
 }
 
 export async function createNotification({
@@ -31,8 +35,9 @@ export async function createNotification({
   message,
   link,
   relatedId,
+  client,
 }: CreateNotificationParams) {
-  const supabase = await createClient()
+  const supabase = client ?? (await createClient())
 
   const { data, error } = await supabase.from("notifications").insert({
     user_id: userId,
