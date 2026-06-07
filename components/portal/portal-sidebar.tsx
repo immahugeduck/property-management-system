@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
-import { Building2, LayoutDashboard, CreditCard, MessageSquare, Wrench, Menu, X } from "lucide-react"
+import { Building2, LayoutDashboard, CreditCard, MessageSquare, Wrench, Bell, Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
@@ -12,6 +12,7 @@ const navItems = [
   { href: "/portal/payments", label: "Payments & Invoices", icon: CreditCard },
   { href: "/portal/messages", label: "Messages", icon: MessageSquare },
   { href: "/portal/maintenance", label: "Maintenance", icon: Wrench },
+  { href: "/portal/notifications", label: "Notifications", icon: Bell },
 ]
 
 export function PortalSidebar() {
