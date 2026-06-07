@@ -262,9 +262,9 @@ export default async function TenantDetailPage({
               </Link>
             </Button>
             <Button variant="outline" className="w-full justify-start" asChild>
-              <Link href={`/dashboard/messages/new?tenant=${id}`}>
+              <Link href={`/dashboard/messages/${id}/chat`}>
                 <MessageSquare className="mr-2 h-4 w-4" />
-                Send Message
+                Open Chat
               </Link>
             </Button>
             {tenant.property && (

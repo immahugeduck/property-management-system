@@ -3,16 +3,25 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Plus, MessageSquare, User, ArrowUpRight, ArrowDownLeft } from "lucide-react"
+import { MessageSquare, User, Building2, ChevronRight } from "lucide-react"
+import type { Message } from "@/lib/types"
 
 function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
-    year: "numeric",
     hour: "numeric",
     minute: "2-digit",
   })
+}
+
+interface Conversation {
+  tenantId: string
+  tenantName: string
+  propertyName: string | null
+  lastMessage: Message
+  unread: number
+  total: number
 }
 
 export default async function MessagesPage() {
@@ -27,7 +36,28 @@ export default async function MessagesPage() {
     console.error("Error fetching messages:", error)
   }
 
-  const unreadCount = messages?.filter(m => !m.is_read && m.direction === "inbound").length || 0
+  // Group messages into per-tenant conversations.
+  const convoMap = new Map<string, Conversation>()
+  for (const m of (messages as any[]) ?? []) {
+    if (!m.tenant_id) continue
+    const existing = convoMap.get(m.tenant_id)
+    const isUnread = !m.is_read && m.sender_role === "tenant"
+    if (!existing) {
+      convoMap.set(m.tenant_id, {
+        tenantId: m.tenant_id,
+        tenantName: m.tenant ? `${m.tenant.first_name} ${m.tenant.last_name}` : "Unknown tenant",
+        propertyName: m.property?.name ?? null,
+        lastMessage: m, // messages are ordered desc, so first seen is latest
+        unread: isUnread ? 1 : 0,
+        total: 1,
+      })
+    } else {
+      existing.total += 1
+      if (isUnread) existing.unread += 1
+    }
+  }
+  const conversations = Array.from(convoMap.values())
+  const totalUnread = conversations.reduce((sum, c) => sum + c.unread, 0)
 
   return (
     <div className="space-y-6 pt-12 lg:pt-0">
@@ -35,71 +65,56 @@ export default async function MessagesPage() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Messages</h1>
           <p className="text-muted-foreground">
-            Communicate with your tenants
-            {unreadCount > 0 && ` (${unreadCount} unread)`}
+            Chat with your tenants about work orders and questions
+            {totalUnread > 0 && ` (${totalUnread} unread)`}
           </p>
         </div>
-        <Button asChild>
-          <Link href="/dashboard/messages/new">
-            <Plus className="mr-2 h-4 w-4" />
-            New Message
-          </Link>
-        </Button>
       </div>
 
-      {!messages || messages.length === 0 ? (
+      {conversations.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <MessageSquare className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No messages yet</h3>
+            <h3 className="text-lg font-semibold mb-2">No conversations yet</h3>
             <p className="text-muted-foreground text-center mb-4">
-              Start communicating with your tenants
+              Once a tenant messages you from their portal, or you message them, the conversation appears here.
             </p>
-            <Button asChild>
-              <Link href="/dashboard/messages/new">
-                <Plus className="mr-2 h-4 w-4" />
-                New Message
-              </Link>
+            <Button asChild variant="outline">
+              <Link href="/dashboard/tenants">View tenants</Link>
             </Button>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-3">
-          {messages.map((message: any) => (
-            <Link key={message.id} href={`/dashboard/messages/${message.id}`}>
-              <Card className={`transition-colors hover:bg-accent/50 cursor-pointer ${!message.is_read && message.direction === "inbound" ? "border-primary" : ""}`}>
-                <CardContent className="pt-6">
-                  <div className="flex items-start gap-4">
-                    <div className={`p-2 rounded-lg ${message.direction === "outbound" ? "bg-blue-500/10" : "bg-green-500/10"}`}>
-                      {message.direction === "outbound" ? (
-                        <ArrowUpRight className="h-5 w-5 text-blue-500" />
-                      ) : (
-                        <ArrowDownLeft className="h-5 w-5 text-green-500" />
-                      )}
+          {conversations.map((c) => (
+            <Link key={c.tenantId} href={`/dashboard/messages/${c.tenantId}/chat`}>
+              <Card className={`transition-colors hover:bg-accent/50 cursor-pointer ${c.unread > 0 ? "border-primary" : ""}`}>
+                <CardContent className="py-4">
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                      <User className="h-5 w-5 text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="font-semibold truncate">{message.subject}</h3>
-                            {!message.is_read && message.direction === "inbound" && (
-                              <Badge>New</Badge>
-                            )}
-                          </div>
-                          {message.tenant && (
-                            <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                              <User className="h-3 w-3" />
-                              {message.tenant.first_name} {message.tenant.last_name}
-                            </p>
-                          )}
-                        </div>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">
-                          {formatDate(message.created_at)}
-                        </span>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-semibold truncate">{c.tenantName}</h3>
+                        {c.unread > 0 && <Badge>{c.unread} new</Badge>}
                       </div>
-                      <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
-                        {message.body}
+                      {c.propertyName && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                          <Building2 className="h-3 w-3" />
+                          {c.propertyName}
+                        </p>
+                      )}
+                      <p className="text-sm text-muted-foreground mt-1 line-clamp-1">
+                        {c.lastMessage.sender_role === "manager" ? "You: " : ""}
+                        {c.lastMessage.body}
                       </p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">
+                        {formatDate(c.lastMessage.created_at)}
+                      </span>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
                     </div>
                   </div>
                 </CardContent>
