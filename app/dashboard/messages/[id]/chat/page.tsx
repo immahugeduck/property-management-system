@@ -7,8 +7,8 @@ import { ArrowLeft, Building2 } from "lucide-react"
 import { ManagerChat } from "@/components/messages/manager-chat"
 import type { Message } from "@/lib/types"
 
-export default async function TenantChatPage({ params }: { params: Promise<{ tenantId: string }> }) {
-  const { tenantId } = await params
+export default async function TenantChatPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: tenantId } = await params
   const supabase = await createClient()
 
   const {
