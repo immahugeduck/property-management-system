@@ -18,6 +18,7 @@ import {
   TrendingUp,
 } from "lucide-react"
 import { DeleteOwnerButton } from "@/components/owners/delete-owner-button"
+import { EntityFilesSection } from "@/components/files/entity-files-section"
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0 }).format(amount)
@@ -52,6 +53,12 @@ export default async function OwnerDetailPage({ params }: { params: Promise<{ id
     .order("name")
 
   const props = properties || []
+
+  const { data: ownerFiles } = await supabase
+    .from("files")
+    .select("*, folder:file_folders(id, name)")
+    .eq("owner_id", id)
+    .order("created_at", { ascending: false })
   const totalRevenue = props.filter(p => p.status === "occupied").reduce((s: number, p: any) => s + (p.monthly_rent || 0), 0)
   const totalTenants = props.reduce((s: number, p: any) => s + (p.tenants?.filter((t: any) => t.status === "active").length || 0), 0)
   const totalCollected = props.reduce((s: number, p: any) => {
@@ -130,6 +137,13 @@ export default async function OwnerDetailPage({ params }: { params: Promise<{ id
           </CardContent>
         </Card>
       </div>
+
+      {/* Files & Documents */}
+      <EntityFilesSection
+        initialFiles={(ownerFiles as any) || []}
+        ownerId={id}
+        title="Files & Documents"
+      />
 
       {/* Owner Card + Properties */}
       <div className="grid gap-6 lg:grid-cols-[320px_1fr]">

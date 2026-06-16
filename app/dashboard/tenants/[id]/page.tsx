@@ -19,6 +19,7 @@ import {
 import { DeleteTenantButton } from "@/components/tenants/delete-tenant-button"
 import { PortalAccessCard } from "@/components/tenants/portal-access-card"
 import { RentScheduleCard } from "@/components/tenants/rent-schedule-card"
+import { EntityFilesSection } from "@/components/files/entity-files-section"
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat("en-US", {
@@ -91,6 +92,13 @@ export default async function TenantDetailPage({
     .eq("tenant_id", id)
     .eq("active", true)
     .maybeSingle()
+
+  // Fetch files linked to this tenant
+  const { data: tenantFiles } = await supabase
+    .from("files")
+    .select("*, folder:file_folders(id, name)")
+    .eq("tenant_id", id)
+    .order("created_at", { ascending: false })
 
   const totalPaid = (payments || [])
     .filter(p => p.status === "paid")
@@ -295,6 +303,13 @@ export default async function TenantDetailPage({
           schedule={schedule ?? null}
         />
       </div>
+
+      {/* Files & Documents */}
+      <EntityFilesSection
+        initialFiles={(tenantFiles as any) || []}
+        tenantId={id}
+        title="Files & Documents"
+      />
 
       {/* Payment History */}
       <Card>
