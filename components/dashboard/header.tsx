@@ -17,9 +17,10 @@ import { LogOut, Settings, User } from "lucide-react"
 
 interface HeaderProps {
   userEmail?: string
+  userId?: string
 }
 
-export function Header({ userEmail }: HeaderProps) {
+export function Header({ userEmail, userId }: HeaderProps) {
   const router = useRouter()
   const supabase = createClient()
 
@@ -35,7 +36,7 @@ export function Header({ userEmail }: HeaderProps) {
   return (
     <header className="sticky top-0 z-40 flex h-16 items-center justify-end gap-4 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:px-8">
       <div className="flex items-center gap-2">
-        <NotificationBell />
+        {userId && <NotificationBell userId={userId} recipientType="manager" />}
         
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

@@ -18,9 +18,10 @@ import { LogOut } from "lucide-react"
 interface PortalHeaderProps {
   tenantName: string
   tenantEmail: string
+  userId?: string
 }
 
-export function PortalHeader({ tenantName, tenantEmail }: PortalHeaderProps) {
+export function PortalHeader({ tenantName, tenantEmail, userId }: PortalHeaderProps) {
   const router = useRouter()
   const supabase = createClient()
 
@@ -39,7 +40,7 @@ export function PortalHeader({ tenantName, tenantEmail }: PortalHeaderProps) {
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center justify-end gap-4 border-b bg-background/95 px-4 pl-16 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:px-8 lg:pl-8">
       <div className="flex items-center gap-2">
-        <NotificationBell />
+        {userId && <NotificationBell userId={userId} recipientType="tenant" />}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-9 w-9 rounded-full">

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Bell, Check, CheckCheck, Trash2, CreditCard, Wrench, MessageSquare, Users, AlertTriangle, Info } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -14,6 +14,7 @@ import { Notification } from "@/lib/types"
 import { formatDistanceToNow } from "date-fns"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 
 const notificationIcons: Record<string, React.ElementType> = {
   payment_received: CreditCard,
@@ -43,11 +44,17 @@ const notificationColors: Record<string, string> = {
   general: "text-muted-foreground bg-muted",
 }
 
-export function NotificationBell() {
+interface NotificationBellProps {
+  userId: string
+  recipientType?: "manager" | "tenant"
+}
+
+export function NotificationBell({ userId, recipientType = "manager" }: NotificationBellProps) {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const initialized = useRef(false)
   const supabase = createClient()
 
   const fetchNotifications = async () => {
@@ -55,11 +62,12 @@ export function NotificationBell() {
       const { data, error } = await supabase
         .from("notifications")
         .select("*")
+        .eq("recipient_type", recipientType)
         .order("created_at", { ascending: false })
         .limit(20)
 
       if (error) {
-        console.log("[v0] Notifications table may not exist yet:", error.message)
+        console.log("[v0] Notifications error:", error.message)
         setNotifications([])
         setUnreadCount(0)
         return
@@ -77,15 +85,38 @@ export function NotificationBell() {
   useEffect(() => {
     fetchNotifications()
 
-    // Set up real-time subscription
     const channel = supabase
-      .channel("notifications")
+      .channel(`notifications:${userId}:${recipientType}`)
       .on(
         "postgres_changes",
         {
-          event: "*",
+          event: "INSERT",
           schema: "public",
           table: "notifications",
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          const n = payload.new as Notification
+          if (n.recipient_type !== recipientType) return
+
+          // Show a toast for the incoming notification
+          if (!initialized.current) return // skip toasts on initial hydration
+          toast(n.title, {
+            description: n.message,
+            duration: 5000,
+          })
+
+          setNotifications((prev) => [n, ...prev].slice(0, 20))
+          setUnreadCount((prev) => prev + 1)
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${userId}`,
         },
         () => {
           fetchNotifications()
@@ -93,10 +124,14 @@ export function NotificationBell() {
       )
       .subscribe()
 
+    // Mark as initialized after first subscribe so toasts only fire for new events
+    const t = setTimeout(() => { initialized.current = true }, 1000)
+
     return () => {
+      clearTimeout(t)
       supabase.removeChannel(channel)
     }
-  }, [])
+  }, [userId, recipientType])
 
   const markAsRead = async (id: string) => {
     const { error } = await supabase
@@ -116,6 +151,8 @@ export function NotificationBell() {
     const { error } = await supabase
       .from("notifications")
       .update({ is_read: true })
+      .eq("user_id", userId)
+      .eq("recipient_type", recipientType)
       .eq("is_read", false)
 
     if (!error) {
@@ -137,10 +174,11 @@ export function NotificationBell() {
   }
 
   const clearAll = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
-    const { error } = await supabase.from("notifications").delete().eq("user_id", user.id)
+    const { error } = await supabase
+      .from("notifications")
+      .delete()
+      .eq("user_id", userId)
+      .eq("recipient_type", recipientType)
 
     if (!error) {
       setNotifications([])
