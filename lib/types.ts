@@ -173,6 +173,36 @@ export interface Notification {
   created_at: string
 }
 
+export interface FileFolder {
+  id: string
+  user_id: string
+  name: string
+  parent_id: string | null
+  created_at: string
+  updated_at: string
+  children?: FileFolder[]
+}
+
+export interface FileRecord {
+  id: string
+  user_id: string
+  folder_id: string | null
+  tenant_id: string | null
+  property_id: string | null
+  owner_id: string | null
+  file_name: string
+  file_size: number
+  mime_type: string | null
+  storage_path: string
+  is_template: boolean
+  description: string | null
+  created_at: string
+  updated_at: string
+  folder?: FileFolder | null
+  tenant?: Pick<Tenant, 'id' | 'first_name' | 'last_name'> | null
+  property?: Pick<Property, 'id' | 'name'> | null
+}
+
 export interface DashboardStats {
   totalProperties: number
   occupiedProperties: number

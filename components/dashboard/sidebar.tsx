@@ -15,6 +15,7 @@ import {
   X,
   FileText,
   Receipt,
+  FolderOpen,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
@@ -29,6 +30,7 @@ const navigation = [
   { name: "Expenses", href: "/dashboard/expenses", icon: Receipt },
   { name: "Maintenance", href: "/dashboard/maintenance", icon: Wrench },
   { name: "Messages", href: "/dashboard/messages", icon: MessageSquare },
+  { name: "Files", href: "/dashboard/files", icon: FolderOpen },
   { name: "Reports", href: "/dashboard/reports", icon: FileText },
 ]
 

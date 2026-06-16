@@ -21,6 +21,7 @@ import {
   Clock,
 } from "lucide-react"
 import { DeletePropertyButton } from "@/components/properties/delete-property-button"
+import { EntityFilesSection } from "@/components/files/entity-files-section"
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat("en-US", {
@@ -95,6 +96,12 @@ export default async function PropertyDetailPage({
   const tenants = tenantsResult.data || []
   const payments = paymentsResult.data || []
   const maintenance = maintenanceResult.data || []
+
+  const { data: propertyFiles } = await supabase
+    .from("files")
+    .select("*, folder:file_folders(id, name)")
+    .eq("property_id", id)
+    .order("created_at", { ascending: false })
 
   // Calculate revenue stats
   const paidPayments = payments.filter(p => p.status === "paid")
@@ -304,6 +311,13 @@ export default async function PropertyDetailPage({
           </CardContent>
         </Card>
       </div>
+
+      {/* Files & Documents */}
+      <EntityFilesSection
+        initialFiles={(propertyFiles as any) || []}
+        propertyId={id}
+        title="Files & Documents"
+      />
 
       {/* Maintenance History */}
       <Card>
