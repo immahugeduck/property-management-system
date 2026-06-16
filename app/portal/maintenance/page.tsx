@@ -3,7 +3,7 @@ import { getCurrentTenant } from "@/lib/tenant-auth"
 import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Wrench, Clock, CheckCircle, Loader2 } from "lucide-react"
+import { Wrench, Clock, CheckCircle, Loader2, CalendarClock, MessageSquare, DollarSign, Camera } from "lucide-react"
 import { TenantMaintenanceForm } from "@/components/portal/tenant-maintenance-form"
 import type { MaintenanceRequest } from "@/lib/types"
 
@@ -23,6 +23,8 @@ export default async function PortalMaintenancePage() {
   if (!tenant) redirect("/auth/login")
 
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
   const { data: requests } = await supabase
     .from("maintenance_requests")
     .select("*")
@@ -45,7 +47,7 @@ export default async function PortalMaintenancePage() {
               <CardTitle className="text-base">New Request</CardTitle>
             </CardHeader>
             <CardContent>
-              <TenantMaintenanceForm hasProperty={Boolean(tenant.property_id)} />
+              <TenantMaintenanceForm hasProperty={Boolean(tenant.property_id)} userId={user?.id ?? ""} />
             </CardContent>
           </Card>
         </div>
@@ -67,7 +69,7 @@ export default async function PortalMaintenancePage() {
               const Icon = s.icon
               return (
                 <Card key={r.id}>
-                  <CardContent className="py-4">
+                  <CardContent className="py-4 space-y-3">
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
                         <h3 className="font-semibold">{r.title}</h3>
@@ -78,6 +80,15 @@ export default async function PortalMaintenancePage() {
                           <span className="capitalize">{r.urgency} priority</span>
                           <span aria-hidden="true">•</span>
                           <span>Submitted {formatDate(r.created_at)}</span>
+                          {r.photo_paths && r.photo_paths.length > 0 && (
+                            <>
+                              <span aria-hidden="true">•</span>
+                              <span className="flex items-center gap-1">
+                                <Camera className="h-3 w-3" />
+                                {r.photo_paths.length} photo{r.photo_paths.length > 1 ? "s" : ""}
+                              </span>
+                            </>
+                          )}
                         </div>
                       </div>
                       <Badge variant="secondary" className={`shrink-0 gap-1 ${s.className}`}>
@@ -85,6 +96,29 @@ export default async function PortalMaintenancePage() {
                         {s.label}
                       </Badge>
                     </div>
+                    {/* Manager-provided details */}
+                    {(r.scheduled_date || r.notes || r.estimated_cost) && (
+                      <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-1.5">
+                        {r.scheduled_date && (
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <CalendarClock className="h-3.5 w-3.5 shrink-0" />
+                            <span>Scheduled for {formatDate(r.scheduled_date)}</span>
+                          </div>
+                        )}
+                        {r.estimated_cost && (
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <DollarSign className="h-3.5 w-3.5 shrink-0" />
+                            <span>Estimated cost: ${Number(r.estimated_cost).toLocaleString()}</span>
+                          </div>
+                        )}
+                        {r.notes && (
+                          <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                            <MessageSquare className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                            <span>{r.notes}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               )

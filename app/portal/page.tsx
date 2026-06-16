@@ -4,8 +4,14 @@ import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { CreditCard, MessageSquare, Wrench, Building2, CalendarClock, ArrowRight } from "lucide-react"
+import { CreditCard, MessageSquare, Wrench, Building2, CalendarClock, ArrowRight, AlertTriangle } from "lucide-react"
 import type { RentPayment } from "@/lib/types"
+
+function daysUntil(dateStr: string | null): number | null {
+  if (!dateStr) return null
+  const diff = new Date(dateStr).getTime() - Date.now()
+  return Math.ceil(diff / (1000 * 60 * 60 * 24))
+}
 
 function currency(n: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2 }).format(n)
@@ -100,6 +106,25 @@ export default async function PortalOverviewPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Lease expiration warning */}
+      {(() => {
+        const days = daysUntil(tenant.lease_end)
+        if (days === null || days > 60) return null
+        const urgent = days <= 30
+        return (
+          <Card className={urgent ? "border-red-500/50 bg-red-500/5" : "border-amber-500/50 bg-amber-500/5"}>
+            <CardContent className="flex items-center gap-3 py-4">
+              <AlertTriangle className={`h-5 w-5 shrink-0 ${urgent ? "text-red-500" : "text-amber-500"}`} />
+              <p className={`text-sm font-medium ${urgent ? "text-red-600" : "text-amber-600"}`}>
+                {days <= 0
+                  ? "Your lease has expired. Please contact your property manager."
+                  : `Your lease expires in ${days} day${days === 1 ? "" : "s"} — contact your manager to discuss renewal.`}
+              </p>
+            </CardContent>
+          </Card>
+        )
+      })()}
 
       {/* Quick links */}
       <div className="grid gap-4 sm:grid-cols-3">

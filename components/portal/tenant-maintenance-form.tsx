@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,20 +13,54 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Loader2 } from "lucide-react"
+import { Loader2, Paperclip, X, Image as ImageIcon } from "lucide-react"
 import { toast } from "sonner"
+import { createClient } from "@/lib/supabase/client"
 import { submitTenantMaintenance } from "@/app/actions/tenant-maintenance"
 
-export function TenantMaintenanceForm({ hasProperty }: { hasProperty: boolean }) {
+export function TenantMaintenanceForm({ hasProperty, userId }: { hasProperty: boolean; userId: string }) {
   const [loading, setLoading] = useState(false)
+  const [photos, setPhotos] = useState<File[]>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files || [])
+    const images = files.filter((f) => f.type.startsWith("image/"))
+    if (images.length !== files.length) toast.error("Only image files are supported.")
+    setPhotos((prev) => [...prev, ...images].slice(0, 5))
+    e.target.value = ""
+  }
+
+  function removePhoto(idx: number) {
+    setPhotos((prev) => prev.filter((_, i) => i !== idx))
+  }
 
   async function handleSubmit(formData: FormData) {
     setLoading(true)
+
+    // Upload photos to Supabase Storage first
+    const photoPaths: string[] = []
+    if (photos.length > 0) {
+      const supabase = createClient()
+      for (const photo of photos) {
+        const ext = photo.name.split(".").pop()
+        const path = `${userId}/maintenance/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+        const { error } = await supabase.storage.from("property-files").upload(path, photo)
+        if (error) {
+          toast.error(`Failed to upload ${photo.name}`)
+        } else {
+          photoPaths.push(path)
+        }
+      }
+    }
+
+    formData.set("photo_paths", JSON.stringify(photoPaths))
     const res = await submitTenantMaintenance(formData)
     setLoading(false)
     if (res.ok) {
       toast.success("Request submitted. Your manager has been notified.")
+      setPhotos([])
       router.refresh()
       const form = document.getElementById("tenant-maint-form") as HTMLFormElement | null
       form?.reset()
@@ -92,6 +126,46 @@ export function TenantMaintenanceForm({ hasProperty }: { hasProperty: boolean })
             </SelectContent>
           </Select>
         </div>
+      </div>
+
+      {/* Photo attachments */}
+      <div className="space-y-2">
+        <Label>Photos (optional, up to 5)</Label>
+        <div className="flex flex-wrap gap-2">
+          {photos.map((photo, idx) => (
+            <div key={idx} className="relative group">
+              <div className="flex items-center gap-1.5 rounded-md border border-border bg-muted/50 px-2 py-1.5 text-xs text-muted-foreground">
+                <ImageIcon className="h-3.5 w-3.5 shrink-0" />
+                <span className="max-w-[120px] truncate">{photo.name}</span>
+                <button
+                  type="button"
+                  onClick={() => removePhoto(idx)}
+                  className="ml-1 rounded hover:text-destructive"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            </div>
+          ))}
+          {photos.length < 5 && (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center gap-1.5 rounded-md border border-dashed border-border px-2 py-1.5 text-xs text-muted-foreground hover:border-primary/50 hover:text-primary transition-colors"
+            >
+              <Paperclip className="h-3.5 w-3.5" />
+              Add photo
+            </button>
+          )}
+        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          onChange={handleFileChange}
+        />
       </div>
 
       <Button type="submit" disabled={loading} className="w-full">

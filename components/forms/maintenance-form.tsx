@@ -17,7 +17,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Spinner } from "@/components/ui/spinner"
 import type { MaintenanceRequest, Property, Tenant } from "@/lib/types"
-import { createNotification, notificationTemplates } from "@/lib/notifications"
+import { notifyMaintenanceCreated } from "@/app/actions/notify-maintenance"
 
 interface MaintenanceFormProps {
   request?: MaintenanceRequest
@@ -100,21 +100,15 @@ export function MaintenanceForm({
         return
       }
 
-      // Create notification for new maintenance request
+      // Notify manager of new maintenance request (non-critical, fires and forgets)
       const property = properties.find(p => p.id === propertyId)
       if (property) {
-        const template = notificationTemplates.maintenanceNew(
-          property.name,
-          data.title,
-          data.urgency
-        )
-        await createNotification({
+        notifyMaintenanceCreated({
           userId,
-          type: template.type,
-          title: template.title,
-          message: template.message,
-          link: "/dashboard/maintenance",
-        }).catch(() => {})
+          propertyName: property.name,
+          title: data.title,
+          urgency: data.urgency,
+        })
       }
     }
 
