@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import {
@@ -73,9 +74,15 @@ export function Sidebar() {
         )}
       >
         {/* Logo */}
-        <div className="flex h-16 items-center gap-2 border-b border-border px-6">
-          <Building2 className="h-6 w-6 text-primary" />
-          <span className="text-lg font-semibold text-foreground">Property HQ</span>
+        <div className="flex h-16 items-center border-b border-border px-4">
+          <Image
+            src="/logo.png"
+            alt="Property HQ"
+            width={160}
+            height={44}
+            className="h-9 w-auto object-contain dark:brightness-0 dark:invert"
+            priority
+          />
         </div>
 
         {/* Navigation */}
