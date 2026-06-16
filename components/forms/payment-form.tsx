@@ -17,7 +17,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Spinner } from "@/components/ui/spinner"
 import type { Tenant } from "@/lib/types"
-import { createNotification, notificationTemplates } from "@/lib/notifications"
+import { notifyPaymentRecorded } from "@/app/actions/notify-payment"
 
 interface PaymentFormProps {
   tenants: Tenant[]
@@ -75,20 +75,14 @@ export function PaymentForm({ tenants, userId, defaultTenantId }: PaymentFormPro
       return
     }
 
-    // Create notification for payment received
+    // Notify manager of payment received (non-critical, fires and forgets)
     if (status === "paid" && tenant) {
-      const template = notificationTemplates.paymentReceived(
-        `${tenant.first_name} ${tenant.last_name}`,
-        parseFloat(formData.get("amount") as string),
-        tenant.property?.name || "Property"
-      )
-      await createNotification({
+      notifyPaymentRecorded({
         userId,
-        type: template.type,
-        title: template.title,
-        message: template.message,
-        link: "/dashboard/payments",
-      }).catch(() => {}) // Silently fail if notifications table doesn't exist
+        tenantName: `${tenant.first_name} ${tenant.last_name}`,
+        amount: parseFloat(formData.get("amount") as string),
+        propertyName: tenant.property?.name || "Property",
+      })
     }
 
     router.push("/dashboard/payments")

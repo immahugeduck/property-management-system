@@ -43,7 +43,8 @@ export function AcceptInviteForm({ token, email }: { token: string; email: strin
     const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password })
     if (signInErr) {
       setLoading(false)
-      router.push("/auth/login")
+      setError("Account created! Please sign in at the login page.")
+      setTimeout(() => router.push("/auth/login"), 2000)
       return
     }
     router.push("/portal")

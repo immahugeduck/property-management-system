@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation"
+import { revalidatePath } from "next/cache"
 import { getCurrentTenant } from "@/lib/tenant-auth"
 import { createClient } from "@/lib/supabase/server"
 import { TenantChat } from "@/components/portal/tenant-chat"
@@ -22,6 +23,8 @@ export default async function PortalMessagesPage() {
     .eq("tenant_id", tenant.id)
     .eq("sender_role", "manager")
     .eq("is_read", false)
+
+  revalidatePath("/portal")
 
   return (
     <div className="space-y-6">

@@ -123,6 +123,7 @@ export interface MaintenanceRequest {
   scheduled_date: string | null
   completed_date: string | null
   notes: string | null
+  photo_paths: string[] | null
   created_at: string
   updated_at: string
   tenant?: Tenant

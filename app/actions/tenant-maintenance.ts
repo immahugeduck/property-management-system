@@ -18,6 +18,12 @@ export async function submitTenantMaintenance(formData: FormData): Promise<{ ok:
 
   if (!title || !description) return { ok: false, error: "Please provide a title and description." }
 
+  const photoPathsRaw = formData.get("photo_paths") as string | null
+  let photoPaths: string[] = []
+  try {
+    if (photoPathsRaw) photoPaths = JSON.parse(photoPathsRaw)
+  } catch { /* ignore */ }
+
   const supabase = await createClient()
   const { error } = await supabase.from("maintenance_requests").insert({
     user_id: tenant.user_id,
@@ -28,6 +34,7 @@ export async function submitTenantMaintenance(formData: FormData): Promise<{ ok:
     category,
     urgency,
     status: "open",
+    photo_paths: photoPaths.length > 0 ? photoPaths : null,
   })
 
   if (error) {

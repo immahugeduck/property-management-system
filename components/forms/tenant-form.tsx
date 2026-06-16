@@ -18,7 +18,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Spinner } from "@/components/ui/spinner"
 import { Users, Mail, Building2, Calendar, DollarSign, FileText, Info, AlertCircle } from "lucide-react"
 import type { Tenant, Property } from "@/lib/types"
-import { createNotification, notificationTemplates } from "@/lib/notifications"
+import { notifyTenantAdded } from "@/app/actions/notify-tenant"
 
 interface TenantFormProps {
   tenant?: Tenant
@@ -132,19 +132,13 @@ export function TenantForm({ tenant, properties, userId, defaultPropertyId }: Te
           .eq("id", propertyId)
       }
 
-      // Create notification for new tenant
+      // Notify manager of new tenant (non-critical, fires and forgets)
       const property = properties.find(p => p.id === propertyId)
-      const template = notificationTemplates.tenantAdded(
-        `${data.first_name} ${data.last_name}`,
-        property?.name || "No property assigned"
-      )
-      await createNotification({
+      notifyTenantAdded({
         userId,
-        type: template.type,
-        title: template.title,
-        message: template.message,
-        link: "/dashboard/tenants",
-      }).catch(() => {})
+        tenantName: `${data.first_name} ${data.last_name}`,
+        propertyName: property?.name || "No property assigned",
+      })
     }
 
     router.push("/dashboard/tenants")

@@ -17,7 +17,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Spinner } from "@/components/ui/spinner"
 import type { Tenant } from "@/lib/types"
-import { createNotification, notificationTemplates } from "@/lib/notifications"
+import { notifyMessageSent } from "@/app/actions/notify-message"
 
 interface MessageFormProps {
   tenants: Tenant[]
@@ -63,21 +63,13 @@ export function MessageForm({ tenants, userId, defaultTenantId }: MessageFormPro
       return
     }
 
-    // Create notification for sent message (for tracking purposes)
+    // Notify manager of sent message (non-critical, fires and forgets)
     if (tenant) {
-      const template = notificationTemplates.messageReceived(
-        `${tenant.first_name} ${tenant.last_name}`,
-        data.subject
-      )
-      // Note: In a real app, this would notify the tenant
-      // For now, we log it for the manager as a sent confirmation
-      await createNotification({
+      notifyMessageSent({
         userId,
-        type: "general",
-        title: "Message Sent",
-        message: `Message "${data.subject}" sent to ${tenant.first_name} ${tenant.last_name}`,
-        link: "/dashboard/messages",
-      }).catch(() => {})
+        subject: data.subject,
+        recipientName: `${tenant.first_name} ${tenant.last_name}`,
+      })
     }
 
     router.push("/dashboard/messages")
