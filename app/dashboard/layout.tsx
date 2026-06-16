@@ -30,7 +30,7 @@ export default async function DashboardLayout({
     <div className="min-h-screen bg-background">
       <Sidebar />
       <div className="lg:pl-64">
-        <Header userEmail={user.email} />
+        <Header userEmail={user.email} userId={user.id} />
         <main className="min-h-[calc(100vh-4rem)] p-4 lg:p-8">
           {children}
         </main>

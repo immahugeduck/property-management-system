@@ -15,6 +15,9 @@ export default async function PortalLayout({
     redirect("/auth/login")
   }
 
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
   return (
     <div className="min-h-screen bg-background">
       <PortalSidebar />
@@ -22,6 +25,7 @@ export default async function PortalLayout({
         <PortalHeader
           tenantName={`${tenant.first_name} ${tenant.last_name}`}
           tenantEmail={tenant.email}
+          userId={user?.id}
         />
         <main className="min-h-[calc(100vh-4rem)] p-4 lg:p-8">{children}</main>
       </div>
