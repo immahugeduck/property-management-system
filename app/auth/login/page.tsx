@@ -12,7 +12,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import Link from 'next/link'
-import { Building2 } from 'lucide-react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { resolveHomePath } from '@/app/actions/resolve-home'
@@ -37,8 +37,7 @@ export default function Page() {
       })
       if (error) throw error
       const home = await resolveHomePath()
-      router.push(home)
-      router.refresh()
+      window.location.href = home
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'An error occurred')
     } finally {
@@ -50,11 +49,8 @@ export default function Page() {
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10 bg-background">
       <div className="w-full max-w-sm">
         <div className="flex flex-col gap-6">
-          <Link href="/" className="flex items-center justify-center gap-2 mb-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-              <Building2 className="h-6 w-6 text-primary-foreground" />
-            </div>
-            <span className="text-xl font-bold">Property HQ</span>
+          <Link href="/" className="flex items-center justify-center mb-2">
+            <Image src="/logo.png" alt="Property HQ" width={180} height={50} className="h-10 w-auto object-contain" priority />
           </Link>
           <Card>
             <CardHeader>
