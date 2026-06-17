@@ -1,9 +1,10 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
-import { Building2, LayoutDashboard, CreditCard, MessageSquare, Wrench, Bell, Menu, X } from "lucide-react"
+import { LayoutDashboard, CreditCard, MessageSquare, Wrench, Bell, Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
@@ -46,14 +47,16 @@ export function PortalSidebar() {
           open ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        <div className="flex h-16 items-center gap-2 border-b border-border px-6">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-            <Building2 className="h-5 w-5 text-primary-foreground" />
-          </div>
-          <div className="leading-tight">
-            <p className="text-sm font-bold">Property HQ</p>
-            <p className="text-xs text-muted-foreground">Tenant Portal</p>
-          </div>
+        <div className="flex h-16 flex-col items-start justify-center gap-0.5 border-b border-border px-4">
+          <Image
+            src="/logo.png"
+            alt="Property HQ"
+            width={140}
+            height={38}
+            className="h-8 w-auto object-contain dark:brightness-0 dark:invert"
+            priority
+          />
+          <p className="text-[10px] text-muted-foreground pl-0.5">Tenant Portal</p>
         </div>
 
         <nav className="flex flex-col gap-1 p-4">
