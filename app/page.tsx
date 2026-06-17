@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {
@@ -60,9 +61,8 @@ export default function HomePage() {
       {/* Header */}
       <header className="border-b border-border">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Building2 className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold">Property HQ</span>
+          <div className="flex items-center">
+            <Image src="/logo.png" alt="Property HQ" width={160} height={44} className="h-9 w-auto object-contain" priority />
           </div>
           <div className="flex items-center gap-4">
             <Button variant="ghost" asChild>
@@ -205,9 +205,8 @@ export default function HomePage() {
       <footer className="border-t border-border py-8">
         <div className="container mx-auto px-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-primary" />
-              <span className="font-semibold">Property HQ</span>
+            <div className="flex items-center">
+              <Image src="/logo.png" alt="Property HQ" width={120} height={33} className="h-7 w-auto object-contain" />
             </div>
             <p className="text-sm text-muted-foreground">
               Property Management System
