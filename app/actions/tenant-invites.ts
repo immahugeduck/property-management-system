@@ -1,18 +1,29 @@
 "use server"
 
 import { randomBytes } from "crypto"
+import { headers } from "next/headers"
 import { createClient } from "@/lib/supabase/server"
 import { createServiceClient } from "@/lib/supabase/service"
 import { createNotification } from "@/lib/notifications"
 import { sendEmail } from "@/lib/email"
 
-function getBaseUrl() {
-  return (
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    (process.env.VERCEL_PROJECT_PRODUCTION_URL
-      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-      : "http://localhost:3000")
-  )
+async function getBaseUrl(): Promise<string> {
+  // Explicit env var takes priority
+  if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "")
+
+  // Derive from the actual incoming request (always correct in server actions)
+  const h = await headers()
+  const host = h.get("x-forwarded-host") || h.get("host")
+  if (host) {
+    const proto = h.get("x-forwarded-proto") || "https"
+    return `${proto}://${host}`
+  }
+
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  }
+
+  return "http://localhost:3000"
 }
 
 /**
@@ -53,9 +64,10 @@ export async function inviteTenant(tenantId: string) {
     .update({ invited_at: new Date().toISOString(), portal_enabled: true })
     .eq("id", tenantId)
 
-  const inviteUrl = `${getBaseUrl()}/invite/accept?token=${token}`
+  const base = await getBaseUrl()
+  const inviteUrl = `${base}/invite/accept?token=${token}`
 
-  await sendEmail({
+  const emailSent = await sendEmail({
     to: tenant.email,
     subject: "You're invited to your Property HQ tenant portal",
     html: `
@@ -69,7 +81,7 @@ export async function inviteTenant(tenantId: string) {
       </div>`,
   })
 
-  return { success: true, inviteUrl }
+  return { success: true, inviteUrl, emailSent }
 }
 
 /**

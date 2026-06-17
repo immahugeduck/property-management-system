@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,7 +9,6 @@ import { acceptInvite } from "@/app/actions/tenant-invites"
 import { createClient } from "@/lib/supabase/client"
 
 export function AcceptInviteForm({ token, email }: { token: string; email: string }) {
-  const router = useRouter()
   const [password, setPassword] = useState("")
   const [confirm, setConfirm] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -44,10 +42,10 @@ export function AcceptInviteForm({ token, email }: { token: string; email: strin
     if (signInErr) {
       setLoading(false)
       setError("Account created! Please sign in at the login page.")
-      setTimeout(() => router.push("/auth/login"), 2000)
+      setTimeout(() => { window.location.href = "/auth/login" }, 2000)
       return
     }
-    router.push("/portal")
+    window.location.href = "/portal"
   }
 
   return (
