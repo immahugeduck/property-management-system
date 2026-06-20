@@ -27,6 +27,7 @@ export function PortalAccessCard({
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [sent, setSent] = useState(false)
+  const [emailSent, setEmailSent] = useState<boolean | null>(null)
 
   const activated = Boolean(authUserId || portalActivatedAt)
   const invited = Boolean(invitedAt)
@@ -42,6 +43,7 @@ export function PortalAccessCard({
     }
     setSent(true)
     if (res.inviteUrl) setInviteUrl(res.inviteUrl)
+    setEmailSent(res.emailSent ?? false)
   }
 
   async function copyLink() {
@@ -98,9 +100,14 @@ export function PortalAccessCard({
               </Button>
             )}
 
-            {sent && (
+            {sent && emailSent === true && (
               <p className="text-sm text-green-600">
-                Invite created. If email delivery is configured, the tenant received it. You can also copy the link below and share it directly.
+                Invite email sent! The tenant will receive a link to set up their portal.
+              </p>
+            )}
+            {sent && emailSent === false && (
+              <p className="text-sm text-yellow-600">
+                Invite created, but email delivery failed. Copy the link below and share it with the tenant directly. To enable email, set <code className="text-xs bg-muted px-1 rounded">EMAIL_FROM</code> in Vercel with a verified Resend domain.
               </p>
             )}
 

@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Building2 } from "lucide-react"
+import Image from "next/image"
 import { validateInvite } from "@/app/actions/tenant-invites"
 import { AcceptInviteForm } from "@/components/portal/accept-invite-form"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -16,11 +16,8 @@ export default async function AcceptInvitePage({
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10 bg-background">
       <div className="w-full max-w-sm">
         <div className="flex flex-col gap-6">
-          <Link href="/" className="flex items-center justify-center gap-2 mb-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-              <Building2 className="h-6 w-6 text-primary-foreground" />
-            </div>
-            <span className="text-xl font-bold">Property HQ</span>
+          <Link href="/" className="flex items-center justify-center mb-2">
+            <Image src="/logo.png" alt="Property HQ" width={180} height={50} className="h-10 w-auto object-contain" priority />
           </Link>
 
           {result.valid ? (
