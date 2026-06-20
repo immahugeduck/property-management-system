@@ -77,7 +77,7 @@ export async function sendManagerMessage(
   // Verify the tenant belongs to this manager and grab portal link info.
   const { data: tenant } = await supabase
     .from("tenants")
-    .select("id, property_id, auth_user_id")
+    .select("id, property_id, auth_user_id, email, first_name, last_name")
     .eq("id", tenantId)
     .eq("user_id", user.id)
     .single()
