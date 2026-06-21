@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createServiceClient } from "@/lib/supabase/service"
 import { createNotification, notificationTemplates } from "@/lib/notifications"
 import { sendEmail } from "@/lib/email"
+import { newInvoiceEmail, siteUrl } from "@/lib/email-templates"
 
 function periodLabel(date: Date) {
   return date.toLocaleDateString("en-US", { month: "long", year: "numeric" })
@@ -83,24 +84,13 @@ export async function GET(request: NextRequest) {
       }).catch(() => {})
 
       if (tenant.email) {
-        const money = `$${Number(s.amount).toLocaleString("en-US", { minimumFractionDigits: 2 })}`
-        await sendEmail({
-          to: tenant.email,
-          subject: `New Rent Invoice — ${label}`,
-          html: `
-            <div style="font-family:Arial,Helvetica,sans-serif;max-width:520px;margin:0 auto;color:#1a1f25;">
-              <h1 style="font-size:20px;">Property HQ — New Invoice</h1>
-              <p>Hi ${tenant.first_name},</p>
-              <p>Your rent invoice of <strong>${money}</strong> for <strong>${label}</strong> is ready.</p>
-              <p style="margin:24px 0;">
-                <a href="${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/portal/payments"
-                   style="background:#1f8f6b;color:#fff;text-decoration:none;padding:12px 20px;border-radius:8px;font-size:14px;display:inline-block;">
-                  View &amp; Pay Invoice
-                </a>
-              </p>
-              <p style="color:#6b7280;font-size:12px;">Log in to your tenant portal to pay online.</p>
-            </div>`,
-        }).catch(() => {})
+        const tpl = newInvoiceEmail({
+          firstName: tenant.first_name,
+          amount: Number(s.amount),
+          periodLabel: label,
+          portalUrl: siteUrl("/portal/payments"),
+        })
+        await sendEmail({ to: tenant.email, subject: tpl.subject, html: tpl.html }).catch(() => {})
       }
     }
   }

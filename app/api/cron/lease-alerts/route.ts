@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createServiceClient } from "@/lib/supabase/service"
 import { createNotification, notificationTemplates } from "@/lib/notifications"
 import { sendEmail } from "@/lib/email"
+import { leaseExpiringEmail, siteUrl } from "@/lib/email-templates"
 
 function verifyCron(request: NextRequest) {
   const secret = process.env.CRON_SECRET
@@ -80,22 +81,14 @@ export async function GET(request: NextRequest) {
         .then(r => r.data?.email)
 
       if (managerEmail) {
-        await sendEmail({
-          to: managerEmail,
-          subject: `Lease Expiring in ${daysRemaining} Days — ${tenant.first_name} ${tenant.last_name}`,
-          html: `
-            <div style="font-family:Arial,Helvetica,sans-serif;max-width:520px;margin:0 auto;color:#1a1f25;">
-              <h1 style="font-size:20px;">Lease Expiring Soon</h1>
-              <p>${tenant.first_name} ${tenant.last_name}'s lease at <strong>${propertyName}</strong> expires on <strong>${leaseEndFormatted}</strong> (${daysRemaining} days).</p>
-              <p>Review the lease and contact the tenant to discuss renewal.</p>
-              <p style="margin:24px 0;">
-                <a href="${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/dashboard/tenants/${tenant.id}"
-                   style="background:#1f8f6b;color:#fff;text-decoration:none;padding:12px 20px;border-radius:8px;font-size:14px;display:inline-block;">
-                  View Tenant
-                </a>
-              </p>
-            </div>`,
-        }).catch(() => {})
+        const tpl = leaseExpiringEmail({
+          tenantName: `${tenant.first_name} ${tenant.last_name}`,
+          propertyName,
+          leaseEndLabel: leaseEndFormatted,
+          daysRemaining,
+          tenantUrl: siteUrl(`/dashboard/tenants/${tenant.id}`),
+        })
+        await sendEmail({ to: managerEmail, subject: tpl.subject, html: tpl.html }).catch(() => {})
       }
     }
 

@@ -6,6 +6,7 @@ import { createServiceClient } from "@/lib/supabase/service"
 import { getCurrentTenant } from "@/lib/tenant-auth"
 import { createNotification, notificationTemplates } from "@/lib/notifications"
 import { sendEmail } from "@/lib/email"
+import { newMessageEmail, siteUrl } from "@/lib/email-templates"
 
 /**
  * Tenant sends a chat message to their property manager.
@@ -117,23 +118,11 @@ export async function sendManagerMessage(
 
     // Also email the tenant so they know to check the portal
     if (tenant.email) {
-      await sendEmail({
-        to: tenant.email,
-        subject: "New message from your property manager",
-        html: `
-          <div style="font-family:Arial,Helvetica,sans-serif;max-width:520px;margin:0 auto;color:#1a1f25;">
-            <h1 style="font-size:20px;">Property HQ — New Message</h1>
-            <p>Hi ${tenant.first_name},</p>
-            <p>You have a new message from your property manager. Log in to your tenant portal to read and reply.</p>
-            <p style="margin:24px 0;">
-              <a href="${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/portal/messages"
-                 style="background:#1f8f6b;color:#fff;text-decoration:none;padding:12px 20px;border-radius:8px;font-size:14px;display:inline-block;">
-                Read Message
-              </a>
-            </p>
-            <p style="color:#6b7280;font-size:12px;">Reply directly in your portal — not by responding to this email.</p>
-          </div>`,
-      }).catch(() => {})
+      const tpl = newMessageEmail({
+        firstName: tenant.first_name,
+        portalUrl: siteUrl("/portal/messages"),
+      })
+      await sendEmail({ to: tenant.email, subject: tpl.subject, html: tpl.html }).catch(() => {})
     }
   }
 
