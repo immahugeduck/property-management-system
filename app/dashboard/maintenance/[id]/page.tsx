@@ -19,6 +19,7 @@ import {
 } from "lucide-react"
 import { DeleteMaintenanceButton } from "@/components/maintenance/delete-maintenance-button"
 import { UpdateStatusButton } from "@/components/maintenance/update-status-button"
+import { VendorAssignmentCard } from "@/components/vendors/vendor-assignment-card"
 
 function formatDate(dateString: string | null) {
   if (!dateString) return "Not set"
@@ -78,11 +79,14 @@ export default async function MaintenanceDetailPage({
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  const { data: request, error } = await supabase
-    .from("maintenance_requests")
-    .select("*, property:properties(*), tenant:tenants(*)")
-    .eq("id", id)
-    .single()
+  const [{ data: request, error }, { data: vendors }] = await Promise.all([
+    supabase
+      .from("maintenance_requests")
+      .select("*, property:properties(*), tenant:tenants(*), vendor:vendors(*)")
+      .eq("id", id)
+      .single(),
+    supabase.from("vendors").select("*").eq("user_id", user?.id ?? "").order("name"),
+  ])
 
   if (error || !request) {
     notFound()
@@ -238,6 +242,13 @@ export default async function MaintenanceDetailPage({
               </div>
             </CardContent>
           </Card>
+
+          {/* Vendor */}
+          <VendorAssignmentCard
+            requestId={id}
+            currentVendor={request.vendor ?? null}
+            vendors={vendors ?? []}
+          />
 
           {/* Reported By */}
           {request.tenant && (

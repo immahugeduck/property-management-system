@@ -17,6 +17,7 @@ import {
   FileText,
   Receipt,
   FolderOpen,
+  HardHat,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
@@ -30,6 +31,7 @@ const navigation = [
   { name: "Payments", href: "/dashboard/payments", icon: CreditCard },
   { name: "Expenses", href: "/dashboard/expenses", icon: Receipt },
   { name: "Maintenance", href: "/dashboard/maintenance", icon: Wrench },
+  { name: "Vendors", href: "/dashboard/vendors", icon: HardHat },
   { name: "Messages", href: "/dashboard/messages", icon: MessageSquare },
   { name: "Files", href: "/dashboard/files", icon: FolderOpen },
   { name: "Reports", href: "/dashboard/reports", icon: FileText },
