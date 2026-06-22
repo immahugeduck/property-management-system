@@ -27,7 +27,11 @@ const FONT =
 
 /** Resolve the public site URL for portal/dashboard links inside emails. */
 export function siteUrl(path = ""): string {
-  const base = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "")
+  const fromEnv = process.env.NEXT_PUBLIC_SITE_URL
+  const fromVercel = process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : undefined
+  const base = (fromEnv || fromVercel || "http://localhost:3000").replace(/\/$/, "")
   if (!path) return base
   return `${base}${path.startsWith("/") ? path : `/${path}`}`
 }

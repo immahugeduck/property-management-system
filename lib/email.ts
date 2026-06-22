@@ -22,9 +22,27 @@ interface SendEmailParams {
  *
  * Returns true if the email was actually sent.
  */
+/**
+ * Normalizes a "from" header into RFC 5322 form: `Display Name <email@domain>`.
+ * Resend rejects/misparses values like `Name<email@domain>` (no space before `<`).
+ * Also handles a bare email address with no display name.
+ */
+function normalizeFrom(raw: string): string {
+  const value = raw.trim()
+  const match = value.match(/^(.*?)<\s*([^>]+?)\s*>$/)
+  if (match) {
+    const name = match[1].trim().replace(/^["']|["']$/g, "")
+    const email = match[2].trim()
+    return name ? `${name} <${email}>` : email
+  }
+  // No angle brackets — treat the whole thing as a bare email address.
+  return value
+}
+
 export async function sendEmail({ to, subject, html, attachments }: SendEmailParams): Promise<boolean> {
   const apiKey = process.env.RESEND_API_KEY
-  const from = process.env.EMAIL_FROM || "Property HQ <onboarding@resend.dev>"
+  const rawFrom = process.env.EMAIL_FROM || "Property HQ <onboarding@resend.dev>"
+  const from = normalizeFrom(rawFrom)
 
   if (!apiKey) {
     console.log(`[v0] Email not sent (no RESEND_API_KEY). Would have sent "${subject}" to ${to}`)
