@@ -11,46 +11,29 @@ import {
   CreditCard,
   ChevronRight,
 } from "lucide-react"
-import Link from "next/link"
+import { BusinessProfileForm } from "@/components/settings/business-profile-form"
 
 export default async function SettingsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const { data: stats } = await supabase.from("properties").select("id").limit(1000)
+  const [{ data: stats }, { data: profile }] = await Promise.all([
+    supabase.from("properties").select("id").limit(1000),
+    supabase.from("user_profiles").select("from_name").eq("user_id", user?.id ?? "").maybeSingle(),
+  ])
   const propertyCount = stats?.length || 0
+  const currentFromName = profile?.from_name ?? null
 
-  const settingsSections = [
-    {
-      title: "Account",
-      icon: User,
-      description: "Manage your account and authentication settings",
-      items: [
-        { label: "Email address", value: user?.email, action: "Change" },
-        { label: "Password", value: "••••••••", action: "Update" },
-        { label: "Account created", value: user?.created_at ? new Date(user.created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : "—", action: null },
-      ],
-    },
-    {
-      title: "Business Profile",
-      icon: Building2,
-      description: "Your business info appears on invoices and reports",
-      items: [
-        { label: "Business name", value: "Not configured", action: "Set up" },
-        { label: "Business address", value: "Not configured", action: "Set up" },
-        { label: "Phone number", value: "Not configured", action: "Set up" },
-      ],
-    },
-    {
-      title: "Notifications",
-      icon: Bell,
-      description: "Control when and how you receive alerts",
-      items: [
-        { label: "Overdue payment alerts", value: "Enabled", action: "Configure" },
-        { label: "Lease expiration alerts", value: "Enabled", action: "Configure" },
-        { label: "Maintenance updates", value: "Enabled", action: "Configure" },
-      ],
-    },
+  const accountItems = [
+    { label: "Email address", value: user?.email },
+    { label: "Password", value: "••••••••", action: "Update" },
+    { label: "Account created", value: user?.created_at ? new Date(user.created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : "—" },
+  ]
+
+  const notificationItems = [
+    { label: "Overdue payment alerts", value: "Enabled" },
+    { label: "Lease expiration alerts", value: "Enabled" },
+    { label: "Maintenance updates", value: "Enabled" },
   ]
 
   return (
@@ -85,36 +68,71 @@ export default async function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Settings Sections */}
-      {settingsSections.map((section) => (
-        <Card key={section.title}>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <section.icon className="h-4 w-4 text-muted-foreground" />
-              {section.title}
-            </CardTitle>
-            <CardDescription>{section.description}</CardDescription>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y divide-border">
-              {section.items.map((item, i) => (
-                <div key={i} className="flex items-center justify-between px-6 py-3.5">
-                  <div>
-                    <p className="text-sm font-medium">{item.label}</p>
-                    <p className="text-sm text-muted-foreground">{item.value}</p>
-                  </div>
-                  {item.action && (
-                    <button className="text-sm text-primary hover:underline font-medium flex items-center gap-1">
-                      {item.action}
-                      <ChevronRight className="h-3.5 w-3.5" />
-                    </button>
-                  )}
+      {/* Account */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <User className="h-4 w-4 text-muted-foreground" />
+            Account
+          </CardTitle>
+          <CardDescription>Manage your account and authentication settings</CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="divide-y divide-border">
+            {accountItems.map((item, i) => (
+              <div key={i} className="flex items-center justify-between px-6 py-3.5">
+                <div>
+                  <p className="text-sm font-medium">{item.label}</p>
+                  <p className="text-sm text-muted-foreground">{item.value}</p>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+                {"action" in item && item.action && (
+                  <button className="text-sm text-primary hover:underline font-medium flex items-center gap-1">
+                    {item.action}
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Business Profile */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Building2 className="h-4 w-4 text-muted-foreground" />
+            Business Profile
+          </CardTitle>
+          <CardDescription>Customize how your company appears in emails sent to tenants and vendors</CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          <BusinessProfileForm currentFromName={currentFromName} />
+        </CardContent>
+      </Card>
+
+      {/* Notifications */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Bell className="h-4 w-4 text-muted-foreground" />
+            Notifications
+          </CardTitle>
+          <CardDescription>Control when and how you receive alerts</CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="divide-y divide-border">
+            {notificationItems.map((item, i) => (
+              <div key={i} className="flex items-center justify-between px-6 py-3.5">
+                <div>
+                  <p className="text-sm font-medium">{item.label}</p>
+                  <p className="text-sm text-muted-foreground">{item.value}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Data & Security */}
       <Card>

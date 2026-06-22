@@ -10,18 +10,10 @@ interface SendEmailParams {
   subject: string
   html: string
   attachments?: EmailAttachment[]
+  /** Override the display name portion of the FROM address (e.g. "BRK Properties"). */
+  fromName?: string
 }
 
-/**
- * Sends an email via Resend if RESEND_API_KEY is configured.
- *
- * If no email provider is configured, this safely no-ops (logs only) so the
- * rest of the app keeps working. To enable real emails:
- *   1. Add the Resend integration / set RESEND_API_KEY
- *   2. Set EMAIL_FROM (e.g. "Property HQ <receipts@yourdomain.com>")
- *
- * Returns true if the email was actually sent.
- */
 /**
  * Normalizes a "from" header into RFC 5322 form: `Display Name <email@domain>`.
  * Resend rejects/misparses values like `Name<email@domain>` (no space before `<`).
@@ -39,9 +31,27 @@ function normalizeFrom(raw: string): string {
   return value
 }
 
-export async function sendEmail({ to, subject, html, attachments }: SendEmailParams): Promise<boolean> {
+/**
+ * Sends an email via Resend if RESEND_API_KEY is configured.
+ *
+ * If no email provider is configured, this safely no-ops (logs only) so the
+ * rest of the app keeps working. To enable real emails:
+ *   1. Add the Resend integration / set RESEND_API_KEY
+ *   2. Set EMAIL_FROM (e.g. "Property HQ <receipts@yourdomain.com>")
+ *
+ * Returns true if the email was actually sent.
+ */
+export async function sendEmail({ to, subject, html, attachments, fromName }: SendEmailParams): Promise<boolean> {
   const apiKey = process.env.RESEND_API_KEY
-  const rawFrom = process.env.EMAIL_FROM || "Property HQ <onboarding@resend.dev>"
+  const emailFromEnv = process.env.EMAIL_FROM || "Property HQ <onboarding@resend.dev>"
+
+  // If the caller supplies a fromName, swap the display part of the FROM address.
+  let rawFrom = emailFromEnv
+  if (fromName) {
+    const match = emailFromEnv.match(/<(.+)>/)
+    const emailAddr = match ? match[1] : emailFromEnv
+    rawFrom = `${fromName} <${emailAddr}>`
+  }
   const from = normalizeFrom(rawFrom)
 
   if (!apiKey) {

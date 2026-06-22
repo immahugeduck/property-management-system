@@ -126,8 +126,40 @@ export interface MaintenanceRequest {
   photo_paths: string[] | null
   created_at: string
   updated_at: string
+  vendor_id?: string | null
+  vendor?: Vendor | null
   tenant?: Tenant
   property?: Property
+}
+
+export interface Vendor {
+  id: string
+  user_id: string
+  name: string
+  company_name: string | null
+  specialty: string | null
+  email: string | null
+  phone: string | null
+  address: string | null
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface VendorPayment {
+  id: string
+  user_id: string
+  vendor_id: string
+  maintenance_request_id: string | null
+  amount: number
+  date: string
+  payment_method: string | null
+  reference_number: string | null
+  notes: string | null
+  created_at: string
+  updated_at: string
+  vendor?: Vendor
+  maintenance_request?: Pick<MaintenanceRequest, 'id' | 'title'> | null
 }
 
 export interface Message {

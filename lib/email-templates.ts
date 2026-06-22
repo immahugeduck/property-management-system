@@ -256,6 +256,48 @@ export function receiptEmail(params: {
   }
 }
 
+/** Work order sent to a vendor for a maintenance request. */
+export function workOrderEmail(params: {
+  vendorName: string
+  managerName: string
+  managerEmail: string
+  propertyName: string
+  propertyAddress: string
+  requestTitle: string
+  description: string
+  category: string
+  urgency: string
+  scheduledDate?: string | null
+  estimatedCost?: number | null
+}): Email {
+  const urgencyLabel = params.urgency.charAt(0).toUpperCase() + params.urgency.slice(1)
+  const categoryLabel = params.category.charAt(0).toUpperCase() + params.category.slice(1).replace(/_/g, " ")
+  const details: DetailRow[] = [
+    { label: "Property", value: params.propertyName },
+    { label: "Address", value: params.propertyAddress },
+    { label: "Category", value: categoryLabel },
+    { label: "Priority", value: urgencyLabel },
+  ]
+  if (params.scheduledDate) details.push({ label: "Scheduled date", value: params.scheduledDate })
+  if (params.estimatedCost) details.push({ label: "Estimated budget", value: `$${Number(params.estimatedCost).toLocaleString("en-US", { minimumFractionDigits: 2 })}` })
+
+  return {
+    subject: `Work Order: ${params.requestTitle} — ${params.propertyName}`,
+    html: renderEmail({
+      preheader: `Work order from ${params.managerName} for ${params.propertyName}.`,
+      heading: "Work Order",
+      body: `
+        <p style="margin:0 0 14px;">Hi ${params.vendorName},</p>
+        <p style="margin:0 0 14px;">You have been assigned a work order at one of our properties. Please review the details below and confirm your availability.</p>
+        <h2 style="margin:0 0 8px;font-size:16px;font-weight:700;color:${BRAND.ink};">${params.requestTitle}</h2>
+        <p style="margin:0 0 14px;color:${BRAND.muted};font-size:14px;">${params.description}</p>
+        ${detailBox(details)}
+        <p style="margin:0 0 4px;font-size:13px;">Please reply to <a href="mailto:${params.managerEmail}" style="color:${BRAND.teal};">${params.managerEmail}</a> to confirm or ask any questions.</p>`,
+      footnote: `Sent by ${params.managerName} via Property HQ.`,
+    }),
+  }
+}
+
 /** Manager alert that a tenant's lease is expiring soon. */
 export function leaseExpiringEmail(params: {
   tenantName: string

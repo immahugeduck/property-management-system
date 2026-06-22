@@ -4,6 +4,7 @@ import { generateReceiptPdf, type ReceiptData } from "@/lib/receipt"
 import { sendEmail } from "@/lib/email"
 import { receiptEmail } from "@/lib/email-templates"
 import { createNotification, notificationTemplates } from "@/lib/notifications"
+import { getFromName } from "@/lib/profile"
 
 function receiptNumber(id: string, paidDate: Date) {
   const year = paidDate.getFullYear()
@@ -95,6 +96,7 @@ export async function settleInvoicePaid(
   // Email the PDF receipt to the tenant (no-op if email provider not configured)
   if (invoice.tenant?.email) {
     try {
+      const fromName = await getFromName(db, invoice.user_id)
       const receiptData: ReceiptData = {
         receiptNumber: rcptNum,
         paidDate: paidDate.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
@@ -104,7 +106,7 @@ export async function settleInvoicePaid(
         tenantEmail: invoice.tenant.email,
         propertyName,
         propertyAddress,
-        managerName: "Property HQ",
+        managerName: fromName,
         periodLabel: period,
       }
       const pdfBytes = await generateReceiptPdf(receiptData)
@@ -119,6 +121,7 @@ export async function settleInvoicePaid(
         to: invoice.tenant.email,
         subject: tpl.subject,
         html: tpl.html,
+        fromName,
         attachments: [
           {
             filename: `receipt-${rcptNum}.pdf`,

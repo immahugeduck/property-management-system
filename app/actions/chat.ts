@@ -7,6 +7,7 @@ import { getCurrentTenant } from "@/lib/tenant-auth"
 import { createNotification, notificationTemplates } from "@/lib/notifications"
 import { sendEmail } from "@/lib/email"
 import { newMessageEmail, siteUrl } from "@/lib/email-templates"
+import { getFromName } from "@/lib/profile"
 
 /**
  * Tenant sends a chat message to their property manager.
@@ -118,11 +119,12 @@ export async function sendManagerMessage(
 
     // Also email the tenant so they know to check the portal
     if (tenant.email) {
+      const fromName = await getFromName(supabase, user.id)
       const tpl = newMessageEmail({
         firstName: tenant.first_name,
         portalUrl: siteUrl("/portal/messages"),
       })
-      await sendEmail({ to: tenant.email, subject: tpl.subject, html: tpl.html }).catch(() => {})
+      await sendEmail({ to: tenant.email, subject: tpl.subject, html: tpl.html, fromName }).catch(() => {})
     }
   }
 
