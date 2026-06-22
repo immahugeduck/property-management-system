@@ -16,6 +16,7 @@ import {
   CheckCircle,
   Clock,
   Play,
+  MessageSquare,
 } from "lucide-react"
 import { DeleteMaintenanceButton } from "@/components/maintenance/delete-maintenance-button"
 import { UpdateStatusButton } from "@/components/maintenance/update-status-button"
@@ -263,6 +264,12 @@ export default async function MaintenanceDetailPage({
                     <p className="text-sm text-muted-foreground">{request.tenant.email}</p>
                   </div>
                 </Link>
+                <Button variant="outline" className="w-full mt-3" asChild>
+                  <Link href={`/dashboard/messages/${request.tenant.id}/chat`}>
+                    <MessageSquare className="mr-2 h-4 w-4" />
+                    Message Tenant
+                  </Link>
+                </Button>
               </CardContent>
             </Card>
           )}
