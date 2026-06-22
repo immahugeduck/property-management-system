@@ -3,6 +3,7 @@ import { createServiceClient } from "@/lib/supabase/service"
 import { createNotification, notificationTemplates } from "@/lib/notifications"
 import { sendEmail } from "@/lib/email"
 import { newInvoiceEmail, siteUrl } from "@/lib/email-templates"
+import { getFromName } from "@/lib/profile"
 
 function periodLabel(date: Date) {
   return date.toLocaleDateString("en-US", { month: "long", year: "numeric" })
@@ -39,6 +40,7 @@ export async function GET(request: NextRequest) {
   }
 
   let created = 0
+  const fromNameCache = new Map<string, string>()
 
   for (const s of schedules) {
     // Only generate once the day_of_month has arrived this month.
@@ -84,13 +86,18 @@ export async function GET(request: NextRequest) {
       }).catch(() => {})
 
       if (tenant.email) {
+        const managerId = s.user_id as string
+        if (!fromNameCache.has(managerId)) {
+          fromNameCache.set(managerId, await getFromName(supabase, managerId))
+        }
+        const fromName = fromNameCache.get(managerId)!
         const tpl = newInvoiceEmail({
           firstName: tenant.first_name,
           amount: Number(s.amount),
           periodLabel: label,
           portalUrl: siteUrl("/portal/payments"),
         })
-        await sendEmail({ to: tenant.email, subject: tpl.subject, html: tpl.html }).catch(() => {})
+        await sendEmail({ to: tenant.email, subject: tpl.subject, html: tpl.html, fromName }).catch(() => {})
       }
     }
   }

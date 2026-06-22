@@ -3,6 +3,7 @@ import { createServiceClient } from "@/lib/supabase/service"
 import { createNotification, notificationTemplates } from "@/lib/notifications"
 import { sendEmail } from "@/lib/email"
 import { overdueEmail, siteUrl } from "@/lib/email-templates"
+import { getFromName } from "@/lib/profile"
 
 function verifyCron(request: NextRequest) {
   const secret = process.env.CRON_SECRET
@@ -35,6 +36,7 @@ export async function GET(request: NextRequest) {
   }
 
   let updated = 0
+  const fromNameCache = new Map<string, string>()
 
   for (const payment of overduePayments) {
     // Update status to overdue.
@@ -88,13 +90,18 @@ export async function GET(request: NextRequest) {
       }).catch(() => {})
 
       if (tenant.email) {
+        const managerId = tenant.user_id as string
+        if (!fromNameCache.has(managerId)) {
+          fromNameCache.set(managerId, await getFromName(supabase, managerId))
+        }
+        const fromName = fromNameCache.get(managerId)!
         const tpl = overdueEmail({
           firstName: tenant.first_name,
           amount,
           dueDateLabel: dueDate,
           portalUrl: siteUrl("/portal/payments"),
         })
-        await sendEmail({ to: tenant.email, subject: tpl.subject, html: tpl.html }).catch(() => {})
+        await sendEmail({ to: tenant.email, subject: tpl.subject, html: tpl.html, fromName }).catch(() => {})
       }
     }
   }

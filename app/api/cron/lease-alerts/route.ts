@@ -3,6 +3,7 @@ import { createServiceClient } from "@/lib/supabase/service"
 import { createNotification, notificationTemplates } from "@/lib/notifications"
 import { sendEmail } from "@/lib/email"
 import { leaseExpiringEmail, siteUrl } from "@/lib/email-templates"
+import { getFromName } from "@/lib/profile"
 
 function verifyCron(request: NextRequest) {
   const secret = process.env.CRON_SECRET
@@ -37,6 +38,7 @@ export async function GET(request: NextRequest) {
   }
 
   let alerted = 0
+  const fromNameCache = new Map<string, string>()
 
   for (const tenant of tenants) {
     if (!tenant.lease_end) continue
@@ -81,6 +83,11 @@ export async function GET(request: NextRequest) {
         .then(r => r.data?.email)
 
       if (managerEmail) {
+        const managerId = tenant.user_id as string
+        if (!fromNameCache.has(managerId)) {
+          fromNameCache.set(managerId, await getFromName(supabase, managerId))
+        }
+        const fromName = fromNameCache.get(managerId)!
         const tpl = leaseExpiringEmail({
           tenantName: `${tenant.first_name} ${tenant.last_name}`,
           propertyName,
@@ -88,7 +95,7 @@ export async function GET(request: NextRequest) {
           daysRemaining,
           tenantUrl: siteUrl(`/dashboard/tenants/${tenant.id}`),
         })
-        await sendEmail({ to: managerEmail, subject: tpl.subject, html: tpl.html }).catch(() => {})
+        await sendEmail({ to: managerEmail, subject: tpl.subject, html: tpl.html, fromName }).catch(() => {})
       }
     }
 

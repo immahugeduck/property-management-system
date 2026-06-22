@@ -7,6 +7,7 @@ import { createServiceClient } from "@/lib/supabase/service"
 import { createNotification } from "@/lib/notifications"
 import { sendEmail } from "@/lib/email"
 import { inviteEmail } from "@/lib/email-templates"
+import { getFromName } from "@/lib/profile"
 
 async function getBaseUrl(): Promise<string> {
   // Explicit env var takes priority
@@ -65,7 +66,10 @@ export async function inviteTenant(tenantId: string) {
     .update({ invited_at: new Date().toISOString(), portal_enabled: true })
     .eq("id", tenantId)
 
-  const base = await getBaseUrl()
+  const [base, fromName] = await Promise.all([
+    getBaseUrl(),
+    getFromName(supabase, user.id),
+  ])
   const inviteUrl = `${base}/invite/accept?token=${token}`
 
   const tpl = inviteEmail({ firstName: tenant.first_name, inviteUrl })
@@ -73,6 +77,7 @@ export async function inviteTenant(tenantId: string) {
     to: tenant.email,
     subject: tpl.subject,
     html: tpl.html,
+    fromName,
   })
 
   return { success: true, inviteUrl, emailSent }

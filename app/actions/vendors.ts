@@ -5,6 +5,7 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { sendEmail } from "@/lib/email"
 import { workOrderEmail } from "@/lib/email-templates"
+import { getFromName } from "@/lib/profile"
 
 // ─── Vendor CRUD ─────────────────────────────────────────────────────────────
 
@@ -95,14 +96,14 @@ export async function sendWorkOrder(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { ok: false, error: "Not authenticated" }
 
-  const [{ data: request }, { data: profile }] = await Promise.all([
+  const [{ data: request }, fromName] = await Promise.all([
     supabase
       .from("maintenance_requests")
       .select("*, vendors(*), properties(*)")
       .eq("id", requestId)
       .eq("user_id", user.id)
       .single(),
-    supabase.from("auth").select("email").eq("id", user.id).maybeSingle(),
+    getFromName(supabase, user.id),
   ])
 
   if (!request) return { ok: false, error: "Request not found" }
@@ -113,7 +114,7 @@ export async function sendWorkOrder(
 
   const tpl = workOrderEmail({
     vendorName: vendor.name,
-    managerName: "Your Property Manager",
+    managerName: fromName,
     managerEmail: user.email ?? "",
     propertyName: property?.name ?? "Property",
     propertyAddress: property ? `${property.address}, ${property.city}, ${property.state}` : "",
@@ -127,7 +128,7 @@ export async function sendWorkOrder(
     estimatedCost: request.estimated_cost,
   })
 
-  const sent = await sendEmail({ to: vendor.email, subject: tpl.subject, html: tpl.html })
+  const sent = await sendEmail({ to: vendor.email, subject: tpl.subject, html: tpl.html, fromName })
   return { ok: !!sent }
 }
 
