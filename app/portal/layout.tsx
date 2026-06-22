@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation"
+import { createClient } from "@/lib/supabase/server"
 import { getCurrentTenant } from "@/lib/tenant-auth"
 import { PortalSidebar } from "@/components/portal/portal-sidebar"
 import { PortalHeader } from "@/components/portal/portal-header"

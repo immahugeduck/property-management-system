@@ -15,10 +15,12 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Spinner } from "@/components/ui/spinner"
-import { Users, Mail, Building2, Calendar, DollarSign, FileText, Info, AlertCircle } from "lucide-react"
+import { Users, Mail, Building2, Calendar, DollarSign, FileText, Info, AlertCircle, KeyRound } from "lucide-react"
 import type { Tenant, Property } from "@/lib/types"
 import { notifyTenantAdded } from "@/app/actions/notify-tenant"
+import { inviteTenant } from "@/app/actions/tenant-invites"
 
 interface TenantFormProps {
   tenant?: Tenant
@@ -70,6 +72,7 @@ export function TenantForm({ tenant, properties, userId, defaultPropertyId }: Te
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedPropertyId, setSelectedPropertyId] = useState(tenant?.property_id || defaultPropertyId || "none")
+  const [sendInvite, setSendInvite] = useState(true)
 
   const isEditing = !!tenant
 
@@ -114,9 +117,11 @@ export function TenantForm({ tenant, properties, userId, defaultPropertyId }: Te
         return
       }
     } else {
-      const { error: insertError } = await supabase
+      const { data: newTenant, error: insertError } = await supabase
         .from("tenants")
         .insert(data)
+        .select("id")
+        .single()
 
       if (insertError) {
         setError(insertError.message)
@@ -139,6 +144,19 @@ export function TenantForm({ tenant, properties, userId, defaultPropertyId }: Te
         tenantName: `${data.first_name} ${data.last_name}`,
         propertyName: property?.name || "No property assigned",
       })
+
+      // Optionally send the portal invite immediately on creation.
+      if (sendInvite && data.email && newTenant?.id) {
+        const res = await inviteTenant(newTenant.id)
+        if (res?.error) {
+          // Tenant was created fine; surface invite issue but still continue
+          // to the detail page where the manager can retry / copy the link.
+          console.error("[v0] invite on create failed:", res.error)
+        }
+        router.push(`/dashboard/tenants/${newTenant.id}`)
+        router.refresh()
+        return
+      }
     }
 
     router.push("/dashboard/tenants")
@@ -404,6 +422,36 @@ export function TenantForm({ tenant, properties, userId, defaultPropertyId }: Te
               <FieldHint>Private notes visible only to you</FieldHint>
             </div>
           </FormSection>
+
+          {/* Portal Access (create only) */}
+          {!isEditing && (
+            <FormSection
+              icon={KeyRound}
+              title="Portal Access"
+              description="Invite this tenant to their online portal where they can view their lease, pay rent, see payment history, message you, and submit maintenance requests."
+            >
+              <label
+                htmlFor="send_invite"
+                className="flex items-start gap-3 rounded-lg border border-border p-4 cursor-pointer hover:bg-muted/40 transition-colors"
+              >
+                <Checkbox
+                  id="send_invite"
+                  checked={sendInvite}
+                  onCheckedChange={(checked) => setSendInvite(checked === true)}
+                  className="mt-0.5"
+                />
+                <div className="space-y-1">
+                  <span className="text-sm font-medium text-foreground block">
+                    Send portal invite now
+                  </span>
+                  <span className="text-xs text-muted-foreground block">
+                    An email invite is sent immediately after the tenant is created. Requires an email
+                    address. You can also invite or resend later from the tenant&apos;s page.
+                  </span>
+                </div>
+              </label>
+            </FormSection>
+          )}
 
           {/* Actions */}
           <div className="flex gap-4 pt-4 border-t">

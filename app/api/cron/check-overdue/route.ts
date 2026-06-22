@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createServiceClient } from "@/lib/supabase/service"
 import { createNotification, notificationTemplates } from "@/lib/notifications"
 import { sendEmail } from "@/lib/email"
+import { overdueEmail, siteUrl } from "@/lib/email-templates"
 
 function verifyCron(request: NextRequest) {
   const secret = process.env.CRON_SECRET
@@ -87,25 +88,13 @@ export async function GET(request: NextRequest) {
       }).catch(() => {})
 
       if (tenant.email) {
-        const money = `$${amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}`
-        await sendEmail({
-          to: tenant.email,
-          subject: `Overdue Rent Payment — ${money} was due ${dueDate}`,
-          html: `
-            <div style="font-family:Arial,Helvetica,sans-serif;max-width:520px;margin:0 auto;color:#1a1f25;">
-              <h1 style="font-size:20px;color:#dc2626;">Rent Payment Overdue</h1>
-              <p>Hi ${tenant.first_name},</p>
-              <p>Your rent payment of <strong>${money}</strong> was due on <strong>${dueDate}</strong> and has not been received.</p>
-              <p>Please log in to your portal to pay immediately or contact your property manager.</p>
-              <p style="margin:24px 0;">
-                <a href="${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/portal/payments"
-                   style="background:#dc2626;color:#fff;text-decoration:none;padding:12px 20px;border-radius:8px;font-size:14px;display:inline-block;">
-                  Pay Now
-                </a>
-              </p>
-              <p style="color:#6b7280;font-size:12px;">If you have already paid, please disregard this message.</p>
-            </div>`,
-        }).catch(() => {})
+        const tpl = overdueEmail({
+          firstName: tenant.first_name,
+          amount,
+          dueDateLabel: dueDate,
+          portalUrl: siteUrl("/portal/payments"),
+        })
+        await sendEmail({ to: tenant.email, subject: tpl.subject, html: tpl.html }).catch(() => {})
       }
     }
   }

@@ -1,7 +1,8 @@
 import "server-only"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { generateReceiptPdf, type ReceiptData } from "@/lib/receipt"
-import { sendEmail, receiptEmailHtml } from "@/lib/email"
+import { sendEmail } from "@/lib/email"
+import { receiptEmail } from "@/lib/email-templates"
 import { createNotification, notificationTemplates } from "@/lib/notifications"
 
 function receiptNumber(id: string, paidDate: Date) {
@@ -107,16 +108,17 @@ export async function settleInvoicePaid(
         periodLabel: period,
       }
       const pdfBytes = await generateReceiptPdf(receiptData)
+      const tpl = receiptEmail({
+        tenantName,
+        amount: Number(invoice.amount),
+        periodLabel: period,
+        receiptNumber: rcptNum,
+        portalUrl: opts.portalUrl,
+      })
       await sendEmail({
         to: invoice.tenant.email,
-        subject: `Payment receipt ${rcptNum} — ${period}`,
-        html: receiptEmailHtml({
-          tenantName,
-          amount: Number(invoice.amount),
-          periodLabel: period,
-          receiptNumber: rcptNum,
-          portalUrl: opts.portalUrl,
-        }),
+        subject: tpl.subject,
+        html: tpl.html,
         attachments: [
           {
             filename: `receipt-${rcptNum}.pdf`,

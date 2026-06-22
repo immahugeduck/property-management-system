@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server"
 import { createServiceClient } from "@/lib/supabase/service"
 import { createNotification } from "@/lib/notifications"
 import { sendEmail } from "@/lib/email"
+import { inviteEmail } from "@/lib/email-templates"
 
 async function getBaseUrl(): Promise<string> {
   // Explicit env var takes priority
@@ -67,18 +68,11 @@ export async function inviteTenant(tenantId: string) {
   const base = await getBaseUrl()
   const inviteUrl = `${base}/invite/accept?token=${token}`
 
+  const tpl = inviteEmail({ firstName: tenant.first_name, inviteUrl })
   const emailSent = await sendEmail({
     to: tenant.email,
-    subject: "You're invited to your Property HQ tenant portal",
-    html: `
-      <div style="font-family: Arial, Helvetica, sans-serif; max-width: 520px; margin:0 auto; color:#1a1f25;">
-        <h1 style="font-size:20px;">Welcome to Property HQ</h1>
-        <p>Hi ${tenant.first_name}, your property manager has invited you to your tenant portal where you can view rent invoices, pay online, see your payment history, and message your manager.</p>
-        <p style="margin:24px 0;">
-          <a href="${inviteUrl}" style="background:#1f8f6b; color:#fff; text-decoration:none; padding:12px 20px; border-radius:8px; font-size:14px; display:inline-block;">Set up your login</a>
-        </p>
-        <p style="color:#6b7280; font-size:12px;">This invite link expires in 14 days. If the button doesn't work, paste this URL into your browser:<br>${inviteUrl}</p>
-      </div>`,
+    subject: tpl.subject,
+    html: tpl.html,
   })
 
   return { success: true, inviteUrl, emailSent }
