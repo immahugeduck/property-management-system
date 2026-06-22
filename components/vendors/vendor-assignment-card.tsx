@@ -16,7 +16,7 @@ interface VendorAssignmentCardProps {
 }
 
 export function VendorAssignmentCard({ requestId, currentVendor, vendors }: VendorAssignmentCardProps) {
-  const [selected, setSelected] = useState(currentVendor?.id ?? "")
+  const [selected, setSelected] = useState(currentVendor?.id ?? "unassigned")
   const [pendingAssign, startAssign] = useTransition()
   const [pendingSend, startSend] = useTransition()
   const [assignError, setAssignError] = useState<string | null>(null)
@@ -26,8 +26,9 @@ export function VendorAssignmentCard({ requestId, currentVendor, vendors }: Vend
   function handleAssign(vendorId: string) {
     setSelected(vendorId)
     setAssignError(null)
+    const vendorIdOrNull = vendorId === "unassigned" ? null : vendorId
     startAssign(async () => {
-      const result = await assignVendor(requestId, vendorId || null)
+      const result = await assignVendor(requestId, vendorIdOrNull)
       if (result.error) setAssignError(result.error)
     })
   }
@@ -64,7 +65,7 @@ export function VendorAssignmentCard({ requestId, currentVendor, vendors }: Vend
               <SelectValue placeholder="Assign a vendor…" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Unassigned</SelectItem>
+              <SelectItem value="unassigned">Unassigned</SelectItem>
               {vendors.map((v) => (
                 <SelectItem key={v.id} value={v.id}>
                   {v.name}{v.company_name ? ` — ${v.company_name}` : ""}{v.specialty ? ` (${v.specialty})` : ""}

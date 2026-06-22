@@ -24,7 +24,7 @@ export function LogPaymentDialog({ vendorId, jobs }: LogPaymentDialogProps) {
   const [open, setOpen] = useState(false)
   const [pending, startTransition] = useTransition()
   const [method, setMethod] = useState("")
-  const [jobId, setJobId] = useState("")
+  const [jobId, setJobId] = useState("none")
   const [error, setError] = useState<string | null>(null)
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -38,14 +38,14 @@ export function LogPaymentDialog({ vendorId, jobs }: LogPaymentDialogProps) {
         payment_method: method || undefined,
         reference_number: (fd.get("reference_number") as string) || undefined,
         notes: (fd.get("notes") as string) || undefined,
-        maintenance_request_id: jobId || null,
+        maintenance_request_id: jobId && jobId !== "none" ? jobId : null,
       })
       if (result.error) {
         setError(result.error)
       } else {
         setOpen(false)
         setMethod("")
-        setJobId("")
+        setJobId("none")
       }
     })
   }
@@ -104,7 +104,7 @@ export function LogPaymentDialog({ vendorId, jobs }: LogPaymentDialogProps) {
                   <SelectValue placeholder="Select job…" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No linked job</SelectItem>
+                  <SelectItem value="none">No linked job</SelectItem>
                   {jobs.map((j) => (
                     <SelectItem key={j.id} value={j.id}>{j.title}</SelectItem>
                   ))}
