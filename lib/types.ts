@@ -89,7 +89,7 @@ export interface RentPayment {
   id: string
   user_id: string
   tenant_id: string
-  property_id: string
+  property_id: string | null
   amount: number
   due_date: string
   paid_date: string | null
