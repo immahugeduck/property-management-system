@@ -15,6 +15,7 @@ interface FileUploadZoneProps {
   propertyId?: string | null
   ownerId?: string | null
   isTemplate?: boolean
+  documentType?: "lease" | "addendum" | "notice" | null
   onUploadComplete?: () => void
   compact?: boolean
 }
@@ -40,6 +41,7 @@ export function FileUploadZone({
   propertyId,
   ownerId,
   isTemplate = false,
+  documentType,
   onUploadComplete,
   compact = false,
 }: FileUploadZoneProps) {
@@ -95,6 +97,7 @@ export function FileUploadZone({
         propertyId,
         ownerId,
         isTemplate,
+        documentType,
       })
 
       if (result.error) {
@@ -111,7 +114,7 @@ export function FileUploadZone({
         onUploadComplete?.()
       }
     }
-  }, [uploads.length, folderId, tenantId, propertyId, ownerId, isTemplate, onUploadComplete])
+  }, [uploads.length, folderId, tenantId, propertyId, ownerId, isTemplate, documentType, onUploadComplete])
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()

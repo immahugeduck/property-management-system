@@ -20,6 +20,7 @@ import { DeleteTenantButton } from "@/components/tenants/delete-tenant-button"
 import { PortalAccessCard } from "@/components/tenants/portal-access-card"
 import { RentScheduleCard } from "@/components/tenants/rent-schedule-card"
 import { EntityFilesSection } from "@/components/files/entity-files-section"
+import { LeaseDocumentsCard } from "@/components/tenants/lease-documents-card"
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat("en-US", {
