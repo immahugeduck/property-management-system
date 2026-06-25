@@ -15,6 +15,7 @@ import {
   Menu,
   X,
   FileText,
+  FileSignature,
   Receipt,
   FolderOpen,
   HardHat,
@@ -33,6 +34,7 @@ const navigation = [
   { name: "Maintenance", href: "/dashboard/maintenance", icon: Wrench },
   { name: "Vendors", href: "/dashboard/vendors", icon: HardHat },
   { name: "Messages", href: "/dashboard/messages", icon: MessageSquare },
+  { name: "Leases", href: "/dashboard/leases", icon: FileSignature },
   { name: "Files", href: "/dashboard/files", icon: FolderOpen },
   { name: "Reports", href: "/dashboard/reports", icon: FileText },
 ]
