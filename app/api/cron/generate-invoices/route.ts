@@ -11,7 +11,11 @@ function periodLabel(date: Date) {
 
 function verifyCron(request: NextRequest) {
   const secret = process.env.CRON_SECRET
-  if (!secret) return true // allow in dev without a secret
+  if (!secret) {
+    // No secret set: allow only outside production so local dev still works.
+    // In production a missing secret means DENY, never allow-all.
+    return process.env.NODE_ENV !== "production"
+  }
   return request.headers.get("authorization") === `Bearer ${secret}`
 }
 
