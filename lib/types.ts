@@ -124,6 +124,7 @@ export interface MaintenanceRequest {
   completed_date: string | null
   notes: string | null
   photo_paths: string[] | null
+  reported_by_name: string | null
   created_at: string
   updated_at: string
   vendor_id?: string | null

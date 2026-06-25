@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Spinner } from "@/components/ui/spinner"
+import { Paperclip, X, Image as ImageIcon } from "lucide-react"
 import type { MaintenanceRequest, Property, Tenant } from "@/lib/types"
 import { notifyMaintenanceCreated } from "@/app/actions/notify-maintenance"
 
@@ -42,6 +43,15 @@ export function MaintenanceForm({
   const [selectedPropertyId, setSelectedPropertyId] = useState(
     request?.property_id || defaultPropertyId || ""
   )
+  // "Reported by" can be a tenant, "none", or "other" (a free-text name).
+  const [reportedBy, setReportedBy] = useState(
+    request?.reported_by_name ? "other" : request?.tenant_id || defaultTenantId || "none"
+  )
+  const [reportedByName, setReportedByName] = useState(request?.reported_by_name || "")
+  // Photos: existing storage paths (when editing) plus newly picked files.
+  const [existingPhotos, setExistingPhotos] = useState<string[]>(request?.photo_paths || [])
+  const [newPhotos, setNewPhotos] = useState<File[]>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const isEditing = !!request
 
@@ -50,6 +60,14 @@ export function MaintenanceForm({
     ? tenants.filter((t) => t.property_id === selectedPropertyId)
     : tenants
 
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files || [])
+    const images = files.filter((f) => f.type.startsWith("image/"))
+    if (images.length !== files.length) setError("Only image files are supported.")
+    setNewPhotos((prev) => [...prev, ...images].slice(0, 5))
+    e.target.value = ""
+  }
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
@@ -57,26 +75,45 @@ export function MaintenanceForm({
 
     const formData = new FormData(e.currentTarget)
     const propertyId = formData.get("property_id") as string
-    const tenantId = formData.get("tenant_id") as string
+
+    const supabase = createClient()
+
+    // Upload any newly added photos to storage, then keep existing + new paths.
+    const uploadedPaths: string[] = []
+    for (const photo of newPhotos) {
+      const ext = photo.name.split(".").pop()
+      const path = `${userId}/maintenance/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+      const { error: uploadError } = await supabase.storage
+        .from("property-files")
+        .upload(path, photo)
+      if (uploadError) {
+        setError(`Failed to upload ${photo.name}: ${uploadError.message}`)
+        setLoading(false)
+        return
+      }
+      uploadedPaths.push(path)
+    }
+
+    const isOther = reportedBy === "other"
+    const isTenant = reportedBy !== "none" && reportedBy !== "other"
 
     const data = {
       user_id: userId,
       property_id: propertyId,
-      tenant_id: tenantId === "none" ? null : tenantId,
+      tenant_id: isTenant ? reportedBy : null,
+      reported_by_name: isOther ? reportedByName.trim() || null : null,
       title: formData.get("title") as string,
       description: formData.get("description") as string,
       category: formData.get("category") as string,
       urgency: formData.get("urgency") as string,
       status: formData.get("status") as string,
-      estimated_cost: parseFloat(formData.get("estimated_cost") as string) || null,
       actual_cost: parseFloat(formData.get("actual_cost") as string) || null,
       scheduled_date: (formData.get("scheduled_date") as string) || null,
       completed_date: (formData.get("completed_date") as string) || null,
       notes: (formData.get("notes") as string) || null,
+      photo_paths: [...existingPhotos, ...uploadedPaths],
       updated_at: new Date().toISOString(),
     }
-
-    const supabase = createClient()
 
     if (isEditing) {
       const { error: updateError } = await supabase
@@ -146,13 +183,13 @@ export function MaintenanceForm({
             />
           </div>
 
-          {/* Description */}
+          {/* Summary */}
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">Summary</Label>
             <Textarea
               id="description"
               name="description"
-              placeholder="Detailed description of the maintenance issue..."
+              placeholder="Where, how, and when it was noticed (e.g. 'Tenant heard a leak under the kitchen sink this morning')..."
               defaultValue={request?.description}
               rows={4}
               required
@@ -182,23 +219,30 @@ export function MaintenanceForm({
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="tenant_id">Reported By (Tenant)</Label>
-              <Select
-                name="tenant_id"
-                defaultValue={request?.tenant_id || defaultTenantId || "none"}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select tenant (optional)" />
+              <Label htmlFor="reported_by">Reported By</Label>
+              <Select value={reportedBy} onValueChange={setReportedBy}>
+                <SelectTrigger id="reported_by">
+                  <SelectValue placeholder="Who reported this?" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">No tenant assigned</SelectItem>
+                  <SelectItem value="none">No one assigned</SelectItem>
                   {filteredTenants.map((tenant) => (
                     <SelectItem key={tenant.id} value={tenant.id}>
                       {tenant.first_name} {tenant.last_name}
                     </SelectItem>
                   ))}
+                  <SelectItem value="other">Other…</SelectItem>
                 </SelectContent>
               </Select>
+              {reportedBy === "other" && (
+                <Input
+                  aria-label="Name of person who reported the issue"
+                  placeholder="e.g. maintenance worker, lawn crew, neighbor"
+                  value={reportedByName}
+                  onChange={(e) => setReportedByName(e.target.value)}
+                  className="mt-2"
+                />
+              )}
             </div>
           </div>
 
@@ -214,7 +258,7 @@ export function MaintenanceForm({
                   <SelectItem value="plumbing">Plumbing</SelectItem>
                   <SelectItem value="electrical">Electrical</SelectItem>
                   <SelectItem value="hvac">HVAC</SelectItem>
-                  <SelectItem value="appliance">Appliance</SelectItem>
+                  <SelectItem value="appliance">Appliances</SelectItem>
                   <SelectItem value="structural">Structural</SelectItem>
                   <SelectItem value="general">General</SelectItem>
                 </SelectContent>
@@ -252,32 +296,18 @@ export function MaintenanceForm({
             </Select>
           </div>
 
-          {/* Costs */}
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="estimated_cost">Estimated Cost ($)</Label>
-              <Input
-                id="estimated_cost"
-                name="estimated_cost"
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="0.00"
-                defaultValue={request?.estimated_cost || ""}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="actual_cost">Actual Cost ($)</Label>
-              <Input
-                id="actual_cost"
-                name="actual_cost"
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="0.00"
-                defaultValue={request?.actual_cost || ""}
-              />
-            </div>
+          {/* Cost (actual billed amount; estimates are handled separately) */}
+          <div className="space-y-2">
+            <Label htmlFor="actual_cost">Actual Cost ($)</Label>
+            <Input
+              id="actual_cost"
+              name="actual_cost"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="0.00"
+              defaultValue={request?.actual_cost || ""}
+            />
           </div>
 
           {/* Dates */}
@@ -311,6 +341,63 @@ export function MaintenanceForm({
               placeholder="Additional notes for reference..."
               defaultValue={request?.notes || ""}
               rows={3}
+            />
+          </div>
+
+          {/* Photos */}
+          <div className="space-y-2">
+            <Label>Photos (optional, up to 5)</Label>
+            <div className="flex flex-wrap gap-2">
+              {existingPhotos.map((path, idx) => (
+                <div
+                  key={`existing-${idx}`}
+                  className="flex items-center gap-1.5 rounded-md border border-border bg-muted/50 px-2 py-1.5 text-xs text-muted-foreground"
+                >
+                  <ImageIcon className="h-3.5 w-3.5 shrink-0" />
+                  <span className="max-w-[120px] truncate">{path.split("/").pop()}</span>
+                  <button
+                    type="button"
+                    onClick={() => setExistingPhotos((prev) => prev.filter((_, i) => i !== idx))}
+                    className="ml-1 rounded hover:text-destructive"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+              {newPhotos.map((photo, idx) => (
+                <div
+                  key={`new-${idx}`}
+                  className="flex items-center gap-1.5 rounded-md border border-border bg-muted/50 px-2 py-1.5 text-xs text-muted-foreground"
+                >
+                  <ImageIcon className="h-3.5 w-3.5 shrink-0" />
+                  <span className="max-w-[120px] truncate">{photo.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => setNewPhotos((prev) => prev.filter((_, i) => i !== idx))}
+                    className="ml-1 rounded hover:text-destructive"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+              {existingPhotos.length + newPhotos.length < 5 && (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center gap-1.5 rounded-md border border-dashed border-border px-2 py-1.5 text-xs text-muted-foreground hover:border-primary/50 hover:text-primary transition-colors"
+                >
+                  <Paperclip className="h-3.5 w-3.5" />
+                  Add photo
+                </button>
+              )}
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={handleFileChange}
             />
           </div>
 
