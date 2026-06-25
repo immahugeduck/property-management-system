@@ -2,13 +2,21 @@ import { NextRequest, NextResponse } from "next/server"
 import { createServiceClient } from "@/lib/supabase/service"
 import { createNotification, notificationTemplates } from "@/lib/notifications"
 import { sendEmail } from "@/lib/email"
-import { overdueEmail, siteUrl } from "@/lib/email-templates"
+import { leaseExpiringEmail, siteUrl } from "@/lib/email-templates"
 import { getFromName } from "@/lib/profile"
 
 function verifyCron(request: NextRequest) {
   const secret = process.env.CRON_SECRET
-  if (!secret) return true
+  if (!secret) {
+    // No secret set: allow only outside production so local dev still works.
+    // In production a missing secret means DENY, never allow-all.
+    return process.env.NODE_ENV !== "production"
+  }
   return request.headers.get("authorization") === `Bearer ${secret}`
+}
+
+function daysUntil(dateStr: string): number {
+  return Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86400000)
 }
 
 export async function GET(request: NextRequest) {
@@ -17,45 +25,38 @@ export async function GET(request: NextRequest) {
   }
 
   const supabase = createServiceClient()
-  const today = new Date().toISOString().slice(0, 10)
 
-  // Find payments that are pending and past their due date.
-  const { data: overduePayments, error } = await supabase
-    .from("rent_payments")
-    .select("*, tenant:tenants(id, first_name, last_name, email, auth_user_id, user_id)")
-    .eq("status", "pending")
-    .lt("due_date", today)
+  // Fetch all tenants with a lease end date.
+  const { data: tenants, error } = await supabase
+    .from("tenants")
+    .select("id, first_name, last_name, email, auth_user_id, user_id, lease_end, property:properties(name)")
+    .not("lease_end", "is", null)
 
   if (error) {
-    console.error("[cron] check-overdue error:", error.message)
+    console.error("[cron] lease-alerts error:", error.message)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  if (!overduePayments || overduePayments.length === 0) {
-    return NextResponse.json({ success: true, updated: 0 })
+  if (!tenants || tenants.length === 0) {
+    return NextResponse.json({ success: true, alerted: 0 })
   }
 
-  let updated = 0
+  let alerted = 0
   const fromNameCache = new Map<string, string>()
 
-  for (const payment of overduePayments) {
-    // Update status to overdue.
-    const { error: updateErr } = await supabase
-      .from("rent_payments")
-      .update({ status: "overdue" })
-      .eq("id", payment.id)
+  for (const tenant of tenants) {
+    if (!tenant.lease_end) continue
 
-    if (updateErr) {
-      console.error("[cron] overdue update error:", updateErr.message)
-      continue
-    }
-    updated++
+    const days = daysUntil(tenant.lease_end)
+    const propertyName = (tenant.property as any)?.name || "their unit"
 
-    const tenant = payment.tenant as any
-    if (!tenant) continue
+    // Alert windows: 60-day and 30-day. Run weekly so ±3 days is the tolerance.
+    const is60Day = days >= 57 && days <= 63
+    const is30Day = days >= 27 && days <= 33
+    if (!is60Day && !is30Day) continue
 
-    const amount = Number(payment.amount)
-    const dueDate = new Date(payment.due_date).toLocaleDateString("en-US", {
+    const daysRemaining = is30Day ? 30 : 60
+    const leaseEndFormatted = new Date(tenant.lease_end).toLocaleDateString("en-US", {
       month: "long",
       day: "numeric",
       year: "numeric",
@@ -63,49 +64,65 @@ export async function GET(request: NextRequest) {
 
     // Notify the manager.
     if (tenant.user_id) {
-      const tmpl = notificationTemplates.paymentOverdue(
+      const tmpl = notificationTemplates.leaseExpiring(
         `${tenant.first_name} ${tenant.last_name}`,
-        amount,
-        Math.ceil((Date.now() - new Date(payment.due_date).getTime()) / 86400000)
+        propertyName,
+        daysRemaining
       )
       await createNotification({
         client: supabase,
         userId: tenant.user_id,
         recipientType: "manager",
         ...tmpl,
-        link: "/dashboard/payments",
-      }).catch(() => {})
-    }
-
-    // Notify the tenant via portal bell + email.
-    if (tenant.auth_user_id) {
-      await createNotification({
-        client: supabase,
-        userId: tenant.auth_user_id,
-        recipientType: "tenant",
-        type: "payment_overdue",
-        title: "Payment Overdue",
-        message: `Your rent payment of $${amount.toLocaleString()} was due on ${dueDate}. Please pay as soon as possible.`,
-        link: "/portal/payments",
+        relatedId: tenant.id,
+        link: `/dashboard/tenants/${tenant.id}`,
       }).catch(() => {})
 
-      if (tenant.email) {
+      // Email the manager too. A manager's email lives in Supabase auth
+      // (auth.users), NOT in user_profiles — so fetch it via the service-role
+      // admin API. (The old code queried a non-existent "profiles" table, so
+      // this email silently never sent.)
+      let managerEmail: string | undefined
+      try {
+        const { data: managerUser } = await supabase.auth.admin.getUserById(tenant.user_id)
+        managerEmail = managerUser?.user?.email ?? undefined
+      } catch (err) {
+        console.error("[cron] lease-alerts manager lookup error:", err)
+      }
+
+      if (managerEmail) {
         const managerId = tenant.user_id as string
         if (!fromNameCache.has(managerId)) {
           fromNameCache.set(managerId, await getFromName(supabase, managerId))
         }
         const fromName = fromNameCache.get(managerId)!
-        const tpl = overdueEmail({
-          firstName: tenant.first_name,
-          amount,
-          dueDateLabel: dueDate,
-          portalUrl: siteUrl("/portal/payments"),
+        const tpl = leaseExpiringEmail({
+          tenantName: `${tenant.first_name} ${tenant.last_name}`,
+          propertyName,
+          leaseEndLabel: leaseEndFormatted,
+          daysRemaining,
+          tenantUrl: siteUrl(`/dashboard/tenants/${tenant.id}`),
         })
-        await sendEmail({ to: tenant.email, subject: tpl.subject, html: tpl.html, fromName }).catch(() => {})
+        await sendEmail({ to: managerEmail, subject: tpl.subject, html: tpl.html, fromName }).catch(() => {})
       }
     }
+
+    // Also notify the tenant via portal bell (if active).
+    if (tenant.auth_user_id) {
+      await createNotification({
+        client: supabase,
+        userId: tenant.auth_user_id,
+        recipientType: "tenant",
+        type: "lease_expiring",
+        title: "Lease Expiring Soon",
+        message: `Your lease expires on ${leaseEndFormatted}. Contact your manager to discuss renewal.`,
+        link: "/portal",
+      }).catch(() => {})
+    }
+
+    alerted++
   }
 
-  console.log(`[cron] check-overdue: marked ${updated} payment(s) overdue`)
-  return NextResponse.json({ success: true, updated })
+  console.log(`[cron] lease-alerts: sent ${alerted} alert(s)`)
+  return NextResponse.json({ success: true, alerted })
 }
