@@ -18,10 +18,14 @@ export async function POST(req: NextRequest) {
   try {
     if (webhookSecret && signature) {
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
-    } else {
-      // No webhook secret configured (e.g. local/sandbox). Fall back to parsing.
-      // The success path is also reconciled by the success page as a safety net.
+    } else if (process.env.NODE_ENV !== "production") {
+      // Local/sandbox only: accept unverified so you can test without the CLI secret.
       event = JSON.parse(body) as Stripe.Event
+    } else {
+      // Production with no secret or no signature: refuse. Never settle a payment
+      // from an unverified event — that would let anyone mark invoices paid.
+      console.error("[stripe] Missing webhook secret or signature in production — rejecting.")
+      return NextResponse.json({ error: "Webhook not configured" }, { status: 400 })
     }
   } catch (err) {
     console.error("[v0] Stripe webhook signature verification failed:", err)
