@@ -65,7 +65,7 @@ const categoryLabels = {
   plumbing: "Plumbing",
   electrical: "Electrical",
   hvac: "HVAC",
-  appliance: "Appliance",
+  appliance: "Appliances",
   structural: "Structural",
   general: "General",
 }
@@ -91,6 +91,15 @@ export default async function MaintenanceDetailPage({
 
   if (error || !request) {
     notFound()
+  }
+
+  // Sign any attached photos so they can be displayed.
+  let photoUrls: string[] = []
+  if (request.photo_paths?.length) {
+    const { data: signed } = await supabase.storage
+      .from("property-files")
+      .createSignedUrls(request.photo_paths, 3600)
+    photoUrls = (signed ?? []).map((s) => s.signedUrl).filter(Boolean) as string[]
   }
 
   const StatusIcon = statusIcons[request.status as keyof typeof statusIcons]
@@ -165,7 +174,7 @@ export default async function MaintenanceDetailPage({
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <p className="text-sm text-muted-foreground mb-1">Description</p>
+              <p className="text-sm text-muted-foreground mb-1">Summary</p>
               <p className="whitespace-pre-wrap">{request.description}</p>
             </div>
             <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
@@ -189,6 +198,29 @@ export default async function MaintenanceDetailPage({
               <div className="pt-4 border-t border-border">
                 <p className="text-sm text-muted-foreground mb-1">Internal Notes</p>
                 <p className="text-sm whitespace-pre-wrap">{request.notes}</p>
+              </div>
+            )}
+            {photoUrls.length > 0 && (
+              <div className="pt-4 border-t border-border">
+                <p className="text-sm text-muted-foreground mb-2">Photos</p>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {photoUrls.map((url, idx) => (
+                    <a
+                      key={idx}
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block overflow-hidden rounded-lg border border-border"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={url}
+                        alt={`Maintenance photo ${idx + 1}`}
+                        className="aspect-square w-full object-cover transition-transform hover:scale-105"
+                      />
+                    </a>
+                  ))}
+                </div>
               </div>
             )}
           </CardContent>
@@ -227,19 +259,13 @@ export default async function MaintenanceDetailPage({
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <DollarSign className="h-5 w-5" />
-                Costs
+                Cost
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Estimated</p>
-                  <p className="text-xl font-bold">{formatCurrency(request.estimated_cost)}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Actual</p>
-                  <p className="text-xl font-bold">{formatCurrency(request.actual_cost)}</p>
-                </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Actual</p>
+                <p className="text-xl font-bold">{formatCurrency(request.actual_cost)}</p>
               </div>
             </CardContent>
           </Card>
@@ -251,7 +277,27 @@ export default async function MaintenanceDetailPage({
             vendors={vendors ?? []}
           />
 
-          {/* Reported By */}
+          {/* Reported By — free-text name (non-tenant reporter) */}
+          {!request.tenant && request.reported_by_name && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Reported By
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-3 p-3 rounded-lg border border-border">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <User className="h-5 w-5 text-primary" />
+                  </div>
+                  <p className="font-medium">{request.reported_by_name}</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Reported By — tenant */}
           {request.tenant && (
             <Card>
               <CardHeader>

@@ -85,11 +85,11 @@ export function TenantMaintenanceForm({ hasProperty, userId }: { hasProperty: bo
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="description">Description</Label>
+        <Label htmlFor="description">Summary</Label>
         <Textarea
           id="description"
           name="description"
-          placeholder="Describe the problem in detail..."
+          placeholder="Where, how, and when you noticed it (e.g. 'Heard a drip under the kitchen sink this morning')..."
           rows={4}
           required
         />
@@ -106,7 +106,7 @@ export function TenantMaintenanceForm({ hasProperty, userId }: { hasProperty: bo
               <SelectItem value="plumbing">Plumbing</SelectItem>
               <SelectItem value="electrical">Electrical</SelectItem>
               <SelectItem value="hvac">HVAC</SelectItem>
-              <SelectItem value="appliance">Appliance</SelectItem>
+              <SelectItem value="appliance">Appliances</SelectItem>
               <SelectItem value="structural">Structural</SelectItem>
               <SelectItem value="general">General</SelectItem>
             </SelectContent>
