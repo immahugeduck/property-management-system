@@ -105,7 +105,13 @@ export function LeaseSigner({ lease, template }: { lease: Lease; template: Lease
         onOpenChange={(o) => !o && setSigningKey(null)}
         title="Your signature"
         onConfirm={(png) => {
-          if (signingKey) setSignatures((prev) => ({ ...prev, [signingKey]: png }))
+          // Apply the same signature to every place the tenant needs to sign, so
+          // they only draw it once (e.g. lease + smoke-detector compliance form).
+          setSignatures((prev) => {
+            const next = { ...prev }
+            for (const f of sigFields) next[f.key] = png
+            return next
+          })
           setSigningKey(null)
         }}
       />
