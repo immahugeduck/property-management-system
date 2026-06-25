@@ -4,13 +4,14 @@ import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
-import { LayoutDashboard, CreditCard, MessageSquare, Wrench, Bell, Menu, X } from "lucide-react"
+import { LayoutDashboard, CreditCard, MessageSquare, Wrench, Bell, FileSignature, Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
 const navItems = [
   { href: "/portal", label: "Overview", icon: LayoutDashboard },
   { href: "/portal/payments", label: "Payments & Invoices", icon: CreditCard },
+  { href: "/portal/documents", label: "Documents", icon: FileSignature },
   { href: "/portal/messages", label: "Messages", icon: MessageSquare },
   { href: "/portal/maintenance", label: "Maintenance", icon: Wrench },
   { href: "/portal/notifications", label: "Notifications", icon: Bell },

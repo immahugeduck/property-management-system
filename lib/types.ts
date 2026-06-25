@@ -236,6 +236,75 @@ export interface FileRecord {
   property?: Pick<Property, 'id' | 'name'> | null
 }
 
+export type LeaseFieldType = 'text' | 'date' | 'number' | 'checkbox' | 'signature' | 'initials'
+export type LeaseFieldRole = 'manager' | 'tenant'
+
+/**
+ * A single fillable field placed on a lease template. Geometry is in PDF points
+ * with a TOP-LEFT origin; `y` is the text baseline (for signatures, the box top).
+ * `source` auto-fills the value from existing records when a lease is created.
+ */
+export interface LeaseTemplateField {
+  key: string
+  label: string
+  type: LeaseFieldType
+  role: LeaseFieldRole
+  source:
+    | null
+    | 'manager.name'
+    | 'tenant.full'
+    | 'tenant.first_name'
+    | 'tenant.last_name'
+    | 'tenant.email'
+    | 'tenant.phone'
+    | 'property.address'
+    | 'property.city'
+    | 'property.state'
+  required: boolean
+  page: number
+  x: number
+  y: number
+  w: number
+  size: number
+  h?: number
+}
+
+export interface LeaseTemplate {
+  id: string
+  user_id: string
+  name: string
+  description: string | null
+  storage_path: string
+  page_count: number
+  page_sizes: { w: number; h: number }[]
+  fields: LeaseTemplateField[]
+  created_at: string
+  updated_at: string
+}
+
+export type LeaseStatus = 'draft' | 'sent' | 'signed' | 'voided'
+
+export interface Lease {
+  id: string
+  user_id: string
+  template_id: string | null
+  tenant_id: string | null
+  property_id: string | null
+  title: string
+  status: LeaseStatus
+  values: Record<string, string | boolean>
+  signed_storage_path: string | null
+  signed_file_id: string | null
+  signer_name: string | null
+  sent_at: string | null
+  signed_at: string | null
+  created_at: string
+  updated_at: string
+  template?: LeaseTemplate | null
+  tenant?: Tenant | null
+  property?: Property | null
+}
+
 export interface DashboardStats {
   totalProperties: number
   occupiedProperties: number
