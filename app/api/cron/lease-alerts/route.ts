@@ -7,7 +7,11 @@ import { getFromName } from "@/lib/profile"
 
 function verifyCron(request: NextRequest) {
   const secret = process.env.CRON_SECRET
-  if (!secret) return true
+  if (!secret) {
+    // No secret set: allow only outside production so local dev still works.
+    // In production a missing secret means DENY, never allow-all.
+    return process.env.NODE_ENV !== "production"
+  }
   return request.headers.get("authorization") === `Bearer ${secret}`
 }
 
@@ -74,13 +78,17 @@ export async function GET(request: NextRequest) {
         link: `/dashboard/tenants/${tenant.id}`,
       }).catch(() => {})
 
-      // Email the manager too.
-      const managerEmail = await supabase
-        .from("profiles")
-        .select("email")
-        .eq("id", tenant.user_id)
-        .maybeSingle()
-        .then(r => r.data?.email)
+      // Email the manager too. A manager's email lives in Supabase auth
+      // (auth.users), NOT in user_profiles — so fetch it via the service-role
+      // admin API. (The old code queried a non-existent "profiles" table, so
+      // this email silently never sent.)
+      let managerEmail: string | undefined
+      try {
+        const { data: managerUser } = await supabase.auth.admin.getUserById(tenant.user_id)
+        managerEmail = managerUser?.user?.email ?? undefined
+      } catch (err) {
+        console.error("[cron] lease-alerts manager lookup error:", err)
+      }
 
       if (managerEmail) {
         const managerId = tenant.user_id as string
