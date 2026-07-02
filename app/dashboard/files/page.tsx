@@ -8,6 +8,7 @@ import { CreateFolderDialog } from "@/components/files/create-folder-dialog"
 import { DeleteFolderButton } from "@/components/files/delete-folder-button"
 import { FileUploadZone } from "@/components/files/file-upload-zone"
 import { FileList } from "@/components/files/file-list"
+import { InstallDocumentTemplatesButton } from "@/components/files/install-document-templates-button"
 import { FolderOpen, Folder, Star, ChevronRight, LayoutGrid } from "lucide-react"
 
 export default async function FilesPage() {
@@ -50,6 +51,7 @@ export default async function FilesPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <InstallDocumentTemplatesButton />
           <CreateFolderDialog parentId={null} />
         </div>
       </div>
