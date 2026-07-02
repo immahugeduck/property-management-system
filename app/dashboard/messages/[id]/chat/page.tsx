@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Building2 } from "lucide-react"
 import { ManagerChat } from "@/components/messages/manager-chat"
+import { signMessageAttachments } from "@/lib/chat-attachments"
 import type { Message } from "@/lib/types"
 
 export default async function TenantChatPage({ params }: { params: Promise<{ id: string }> }) {
@@ -72,7 +73,7 @@ export default async function TenantChatPage({ params }: { params: Promise<{ id:
         </p>
       )}
 
-      <ManagerChat tenantId={tenantId} messages={(messages as Message[]) ?? []} />
+      <ManagerChat tenantId={tenantId} messages={await signMessageAttachments((messages as Message[]) ?? [])} />
     </div>
   )
 }

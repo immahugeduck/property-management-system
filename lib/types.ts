@@ -174,6 +174,12 @@ export interface Message {
   sender_role: 'manager' | 'tenant'
   is_read: boolean
   created_at: string
+  attachment_path?: string | null
+  attachment_name?: string | null
+  attachment_type?: string | null
+  attachment_size?: number | null
+  /** Short-lived signed URL, populated server-side when a thread is loaded. */
+  attachment_url?: string | null
   tenant?: Tenant
   property?: Property
 }
