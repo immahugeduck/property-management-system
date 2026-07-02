@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 import { getCurrentTenant } from "@/lib/tenant-auth"
 import { createClient } from "@/lib/supabase/server"
 import { TenantChat } from "@/components/portal/tenant-chat"
+import { signMessageAttachments } from "@/lib/chat-attachments"
 import type { Message } from "@/lib/types"
 
 export default async function PortalMessagesPage() {
@@ -31,7 +32,7 @@ export default async function PortalMessagesPage() {
           Chat with your property manager about work orders, payments, or any questions
         </p>
       </div>
-      <TenantChat messages={(messages as Message[]) ?? []} />
+      <TenantChat messages={await signMessageAttachments((messages as Message[]) ?? [])} />
     </div>
   )
 }
