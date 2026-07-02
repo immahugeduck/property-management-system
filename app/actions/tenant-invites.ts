@@ -2,6 +2,7 @@
 
 import { randomBytes } from "crypto"
 import { headers } from "next/headers"
+import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import { createServiceClient } from "@/lib/supabase/service"
 import { createNotification } from "@/lib/notifications"
@@ -65,6 +66,9 @@ export async function inviteTenant(tenantId: string) {
     .from("tenants")
     .update({ invited_at: new Date().toISOString(), portal_enabled: true })
     .eq("id", tenantId)
+
+  revalidatePath("/dashboard/tenants")
+  revalidatePath(`/dashboard/tenants/${tenantId}`)
 
   const [base, fromName] = await Promise.all([
     getBaseUrl(),
@@ -161,6 +165,11 @@ export async function acceptInvite(params: { token: string; password: string }) 
   }
 
   await svc.from("tenant_invites").update({ status: "accepted", accepted_at: new Date().toISOString() }).eq("id", invite.id)
+
+  // Bust the manager's cached tenant views so the "Pending" portal tag
+  // updates to "Portal active" without needing a hard refresh.
+  revalidatePath("/dashboard/tenants")
+  revalidatePath(`/dashboard/tenants/${invite.tenant_id}`)
 
   // Notify the manager that the tenant activated their portal.
   await createNotification({

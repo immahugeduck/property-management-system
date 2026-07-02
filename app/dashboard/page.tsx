@@ -120,9 +120,11 @@ export default async function DashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
-              <span>Recent Maintenance</span>
-              <Link 
-                href="/dashboard/maintenance" 
+              <Link href="/dashboard/maintenance" className="hover:underline">
+                Recent Maintenance
+              </Link>
+              <Link
+                href="/dashboard/maintenance"
                 className="text-sm font-normal text-primary hover:underline"
               >
                 View all
@@ -138,9 +140,10 @@ export default async function DashboardPage() {
             ) : (
               <div className="space-y-4">
                 {recentMaintenance.map((request) => (
-                  <div
+                  <Link
                     key={request.id}
-                    className="flex items-start justify-between gap-4"
+                    href={`/dashboard/maintenance/${request.id}`}
+                    className="flex items-start justify-between gap-4 -mx-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-accent/50"
                   >
                     <div className="flex items-start gap-3">
                       {request.urgency === "emergency" ? (
@@ -168,7 +171,7 @@ export default async function DashboardPage() {
                     >
                       {request.urgency}
                     </Badge>
-                  </div>
+                  </Link>
                 ))}
               </div>
             )}
