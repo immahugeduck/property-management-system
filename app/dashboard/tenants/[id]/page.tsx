@@ -20,7 +20,7 @@ import { DeleteTenantButton } from "@/components/tenants/delete-tenant-button"
 import { PortalAccessCard } from "@/components/tenants/portal-access-card"
 import { RentScheduleCard } from "@/components/tenants/rent-schedule-card"
 import { EntityFilesSection } from "@/components/files/entity-files-section"
-import { LeaseDocumentsCard } from "@/components/tenants/lease-documents-card"
+import { TenantLeasesCard } from "@/components/tenants/tenant-leases-card"
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat("en-US", {
@@ -98,6 +98,13 @@ export default async function TenantDetailPage({
   const { data: tenantFiles } = await supabase
     .from("files")
     .select("*, folder:file_folders(id, name)")
+    .eq("tenant_id", id)
+    .order("created_at", { ascending: false })
+
+  // Fetch lease agreements for this tenant
+  const { data: tenantLeases } = await supabase
+    .from("leases")
+    .select("id, title, status, sent_at, signed_at, created_at")
     .eq("tenant_id", id)
     .order("created_at", { ascending: false })
 
@@ -304,6 +311,9 @@ export default async function TenantDetailPage({
           schedule={schedule ?? null}
         />
       </div>
+
+      {/* Lease Agreements */}
+      <TenantLeasesCard tenantId={id} leases={(tenantLeases as any) || []} />
 
       {/* Files & Documents */}
       <EntityFilesSection

@@ -236,6 +236,69 @@ export interface FileRecord {
   property?: Pick<Property, 'id' | 'name'> | null
 }
 
+export type LeaseFieldType = 'text' | 'date' | 'checkbox' | 'signature'
+export type LeaseFieldRole = 'manager' | 'tenant'
+
+export interface LeaseField {
+  key: string
+  label: string
+  type: LeaseFieldType
+  role: LeaseFieldRole
+  page: number
+  x: number
+  y: number
+  w: number
+  size: number
+  required: boolean
+  source: string | null
+}
+
+export interface LeasePageSize {
+  w: number
+  h: number
+}
+
+export interface LeaseTemplate {
+  id: string
+  user_id: string
+  name: string
+  description: string | null
+  storage_path: string
+  page_count: number
+  page_sizes: LeasePageSize[]
+  fields: LeaseField[]
+  slug: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type LeaseStatus = 'draft' | 'sent' | 'signed' | 'void'
+
+/** A field value: string for text/date/signature (signature is a data URL), boolean for checkbox. */
+export type LeaseValue = string | boolean
+export type LeaseValues = Record<string, LeaseValue>
+
+export interface Lease {
+  id: string
+  user_id: string
+  template_id: string | null
+  tenant_id: string | null
+  property_id: string | null
+  title: string
+  status: LeaseStatus
+  values: LeaseValues
+  signed_storage_path: string | null
+  signed_file_id: string | null
+  signer_name: string | null
+  sent_at: string | null
+  signed_at: string | null
+  created_at: string
+  updated_at: string
+  template?: LeaseTemplate | null
+  tenant?: Pick<Tenant, 'id' | 'first_name' | 'last_name' | 'email'> | null
+  property?: Pick<Property, 'id' | 'name' | 'address' | 'city' | 'state'> | null
+}
+
 export interface DashboardStats {
   totalProperties: number
   occupiedProperties: number
