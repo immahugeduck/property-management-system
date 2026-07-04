@@ -98,6 +98,7 @@ export async function saveFileMetadata({
   ownerId,
   isTemplate,
   description,
+  documentType,
 }: {
   storagePath: string
   fileName: string
@@ -109,6 +110,7 @@ export async function saveFileMetadata({
   ownerId?: string | null
   isTemplate?: boolean
   description?: string | null
+  documentType?: "lease" | "addendum" | "notice" | null
 }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -128,6 +130,7 @@ export async function saveFileMetadata({
       owner_id: ownerId || null,
       is_template: isTemplate || false,
       description: description || null,
+      document_type: documentType || null,
     })
     .select()
     .single()
