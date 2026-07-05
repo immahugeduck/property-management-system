@@ -113,6 +113,10 @@ export async function sendLease(leaseId: string) {
     .eq("user_id", user.id)
     .single()
   if (!lease) return { error: "Lease not found" }
+  if (lease.status === "signed")
+    return { error: "This lease has already been signed and can't be sent again." }
+  if (lease.status === "voided")
+    return { error: "This lease has been voided." }
   if (!lease.tenant?.auth_user_id)
     return { error: "This tenant has not activated their portal yet. Invite them first." }
 
@@ -257,7 +261,7 @@ export async function signLease(
   if (upErr) return { error: `Failed to store signed lease: ${upErr.message}` }
 
   // Attach to the manager's Files (tenant-linked) via the service client.
-  const { data: fileRow } = await service
+  const { data: fileRow, error: fileErr } = await service
     .from("files")
     .insert({
       user_id: lease.user_id,
@@ -272,6 +276,12 @@ export async function signLease(
     })
     .select("id")
     .single()
+  if (fileErr || !fileRow) {
+    // Roll back the uploaded PDF so we don't leave an orphaned object, and abort
+    // before marking the lease signed.
+    await service.storage.from(BUCKET).remove([signedPath])
+    return { error: `Failed to record the signed lease: ${fileErr?.message ?? "unknown error"}` }
+  }
 
   const { error: updErr } = await service
     .from("leases")
@@ -279,7 +289,7 @@ export async function signLease(
       status: "signed",
       values: merged,
       signed_storage_path: signedPath,
-      signed_file_id: fileRow?.id ?? null,
+      signed_file_id: fileRow.id,
       signer_name: signerName,
       signed_at: new Date().toISOString(),
     })
@@ -299,5 +309,7 @@ export async function signLease(
 
   revalidatePath(`/portal/documents`)
   revalidatePath(`/dashboard/leases/${leaseId}`)
+  revalidatePath("/dashboard/leases")
+  if (lease.tenant_id) revalidatePath(`/dashboard/tenants/${lease.tenant_id}`)
   return { success: true }
 }

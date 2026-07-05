@@ -38,7 +38,7 @@ export function LeaseViewer({
           {signedAt ? ` on ${new Date(signedAt).toLocaleDateString()}` : ""}
         </Badge>
         {url && (
-          <Button variant="outline" size="sm" onClick={() => window.open(url, "_blank")}>
+          <Button variant="outline" size="sm" onClick={() => window.open(url, "_blank", "noopener,noreferrer")}>
             <Download className="mr-2 h-4 w-4" /> Download PDF
           </Button>
         )}
