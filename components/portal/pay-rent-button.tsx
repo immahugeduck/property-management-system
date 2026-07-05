@@ -20,7 +20,7 @@ export function PayRentButton({ invoiceId, size = "default" }: { invoiceId: stri
     if (res.url) {
       // Open Stripe Checkout. If embedded in an iframe, open in a new tab.
       if (typeof window !== "undefined" && window.self !== window.top) {
-        window.open(res.url, "_blank")
+        window.open(res.url, "_blank", "noopener,noreferrer")
         setLoading(false)
       } else {
         window.location.href = res.url

@@ -60,7 +60,7 @@ function FileRow({ file, showEntity }: { file: FileRecord; showEntity?: boolean 
     if (result.error) {
       toast.error(result.error)
     } else if (result.url) {
-      window.open(result.url, "_blank")
+      window.open(result.url, "_blank", "noopener,noreferrer")
     }
   }
 
