@@ -60,7 +60,7 @@ function DocRow({ file, onDelete }: { file: LeaseFile; onDelete: (id: string) =>
     startDownload(async () => {
       const result = await getFileSignedUrl(file.storage_path)
       if (result.url) {
-        window.open(result.url, "_blank")
+        window.open(result.url, "_blank", "noopener,noreferrer")
       }
     })
   }
@@ -106,7 +106,7 @@ function TemplateRow({ file }: { file: LeaseFile }) {
   async function handleDownload() {
     startDownload(async () => {
       const result = await getFileSignedUrl(file.storage_path)
-      if (result.url) window.open(result.url, "_blank")
+      if (result.url) window.open(result.url, "_blank", "noopener,noreferrer")
     })
   }
 
@@ -198,7 +198,7 @@ export function LeaseDocumentsCard({ tenantId, initialDocs, templates }: Props) 
                 className="h-7 text-xs shrink-0"
                 onClick={async () => {
                   const r = await getFileSignedUrl(activeLease.storage_path)
-                  if (r.url) window.open(r.url, "_blank")
+                  if (r.url) window.open(r.url, "_blank", "noopener,noreferrer")
                 }}
               >
                 <Download className="mr-1.5 h-3 w-3" />

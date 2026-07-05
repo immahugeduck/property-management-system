@@ -27,6 +27,7 @@ export function LeaseSigner({ lease, template }: { lease: Lease; template: Lease
   const [signatures, setSignatures] = useState<Record<string, string>>({})
   const [url, setUrl] = useState<string | null>(null)
   const [signingKey, setSigningKey] = useState<string | null>(null)
+  const [agreed, setAgreed] = useState(false)
   const [pending, start] = useTransition()
 
   useEffect(() => {
@@ -52,6 +53,10 @@ export function LeaseSigner({ lease, template }: { lease: Lease; template: Lease
       toast.error("Please complete the required fields")
       return
     }
+    if (!agreed) {
+      toast.error("Please confirm your agreement to sign electronically")
+      return
+    }
     start(async () => {
       const textValues: Record<string, string> = {}
       for (const f of textFields) if (typeof values[f.key] === "string") textValues[f.key] = values[f.key] as string
@@ -69,14 +74,30 @@ export function LeaseSigner({ lease, template }: { lease: Lease; template: Lease
   return (
     <div className="space-y-4">
       <Card className="border-primary/30 bg-primary/5">
-        <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <CardContent className="flex flex-col gap-3 py-4">
           <div className="flex items-center gap-2 text-sm">
             <PenLine className="h-4 w-4 text-primary" />
             <span>
               Review your lease, fill any required fields, then add your signature where indicated.
             </span>
           </div>
-          <Button onClick={submit} disabled={pending || !allSigned || !allText}>
+          <label className="flex items-start gap-2 text-sm text-muted-foreground">
+            <input
+              type="checkbox"
+              checked={agreed}
+              onChange={(e) => setAgreed(e.target.checked)}
+              className="mt-0.5 h-4 w-4"
+            />
+            <span>
+              I agree that signing electronically is the legal equivalent of my handwritten signature, and the
+              information I have entered is accurate.
+            </span>
+          </label>
+          <Button
+            onClick={submit}
+            disabled={pending || !allSigned || !allText || !agreed}
+            className="sm:self-end"
+          >
             {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
             Sign &amp; submit
           </Button>

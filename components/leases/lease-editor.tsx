@@ -85,7 +85,7 @@ export function LeaseEditor({ lease, template }: { lease: Lease; template: Lease
   async function downloadSigned() {
     const r = await getLeaseDocumentUrl(lease.id, "signed")
     if (r.error) toast.error(r.error)
-    else window.open(r.url, "_blank")
+    else window.open(r.url, "_blank", "noopener,noreferrer")
   }
 
   return (
