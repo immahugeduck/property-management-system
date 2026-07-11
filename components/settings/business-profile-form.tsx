@@ -69,8 +69,8 @@ export function BusinessProfileForm({ currentFromName }: Props) {
       <div>
         <p className="text-sm font-medium">Email display name</p>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Shown as the sender on all emails to tenants and vendors (e.g. "BRK Properties").
-          Leave blank to use "Property HQ".
+          Shown as the sender on all emails to tenants and vendors (e.g. &ldquo;BRK Properties&rdquo;).
+          Leave blank to use &ldquo;Property HQ&rdquo;.
         </p>
       </div>
       <div className="flex gap-2 flex-wrap">
