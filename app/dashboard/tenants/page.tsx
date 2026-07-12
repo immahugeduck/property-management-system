@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import type { Tenant } from "@/lib/types"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -73,7 +74,7 @@ export default async function TenantsPage() {
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {tenants.map((tenant: any) => (
+          {tenants.map((tenant: Tenant) => (
             <Link key={tenant.id} href={`/dashboard/tenants/${tenant.id}`}>
               <Card className="h-full transition-colors hover:bg-accent/50 cursor-pointer">
                 <CardContent className="pt-6">

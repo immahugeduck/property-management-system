@@ -4,7 +4,9 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import { NewLeaseForm } from "@/components/leases/new-lease-form"
-import type { LeaseTemplate } from "@/lib/types"
+import type { LeaseTemplate, Tenant } from "@/lib/types"
+
+type LeaseFormTenant = Pick<Tenant, "id" | "first_name" | "last_name"> & { property?: { name: string } | null }
 
 export default async function NewLeasePage({
   searchParams,
@@ -38,7 +40,7 @@ export default async function NewLeasePage({
       </Button>
       <NewLeaseForm
         templates={templates}
-        tenants={(tenantsRes.data || []) as any}
+        tenants={(tenantsRes.data || []) as unknown as LeaseFormTenant[]}
         defaultTemplate={template}
       />
     </div>

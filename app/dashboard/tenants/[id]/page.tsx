@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
+import type { RentPayment, FileRecord } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -307,7 +308,7 @@ export default async function TenantDetailPage({
 
       {/* Files & Documents */}
       <EntityFilesSection
-        initialFiles={(tenantFiles as any) || []}
+        initialFiles={(tenantFiles as FileRecord[]) || []}
         tenantId={id}
         title="Files & Documents"
       />
@@ -335,7 +336,7 @@ export default async function TenantDetailPage({
             </p>
           ) : (
             <div className="space-y-3">
-              {payments.map((payment: any) => (
+              {payments.map((payment: RentPayment) => (
                 <div
                   key={payment.id}
                   className="flex items-center justify-between p-3 rounded-lg border border-border"

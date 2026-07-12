@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
+import type { Tenant, MaintenanceRequest, FileRecord } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -283,7 +284,7 @@ export default async function PropertyDetailPage({
               </p>
             ) : (
               <div className="space-y-3">
-                {tenants.map((tenant: any) => (
+                {tenants.map((tenant: Tenant) => (
                   <Link
                     key={tenant.id}
                     href={`/dashboard/tenants/${tenant.id}`}
@@ -314,7 +315,7 @@ export default async function PropertyDetailPage({
 
       {/* Files & Documents */}
       <EntityFilesSection
-        initialFiles={(propertyFiles as any) || []}
+        initialFiles={(propertyFiles as FileRecord[]) || []}
         propertyId={id}
         title="Files & Documents"
       />
@@ -342,7 +343,7 @@ export default async function PropertyDetailPage({
             </p>
           ) : (
             <div className="space-y-3">
-              {maintenance.map((request: any) => (
+              {maintenance.map((request: MaintenanceRequest) => (
                 <Link
                   key={request.id}
                   href={`/dashboard/maintenance/${request.id}`}

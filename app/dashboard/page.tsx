@@ -1,4 +1,9 @@
 import { createClient } from "@/lib/supabase/server"
+import type { RentPayment, Tenant } from "@/lib/types"
+
+type RecentPayment = Pick<RentPayment, "id" | "amount" | "status" | "due_date"> & {
+  tenant: Pick<Tenant, "first_name" | "last_name"> | null
+}
 import { StatsCard } from "@/components/dashboard/stats-card"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -199,7 +204,7 @@ export default async function DashboardPage() {
               </p>
             ) : (
               <div className="space-y-4">
-                {recentPayments.map((payment: any) => (
+                {(recentPayments as unknown as RecentPayment[]).map((payment) => (
                   <div
                     key={payment.id}
                     className="flex items-center justify-between gap-4"

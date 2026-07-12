@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Plus, UserCircle, Mail, Phone, Building2, Briefcase } from "lucide-react"
+import type { PropertyOwner } from "@/lib/types"
+
+type OwnerWithStats = PropertyOwner & { propertyCount: number; monthlyRevenue: number }
 
 export default async function OwnersPage() {
   const supabase = await createClient()
@@ -62,7 +65,7 @@ export default async function OwnersPage() {
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {ownersWithStats.map((owner: any) => (
+          {ownersWithStats.map((owner: OwnerWithStats) => (
             <Link key={owner.id} href={`/dashboard/owners/${owner.id}`}>
               <Card className="h-full transition-all hover:border-primary/30 hover:bg-accent/30 cursor-pointer group">
                 <CardContent className="pt-6">

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import type { RentPayment } from "@/lib/types"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -135,7 +136,7 @@ export default async function PaymentsPage() {
         </Card>
       ) : (
         <div className="space-y-3">
-          {payments.map((payment: any) => (
+          {payments.map((payment: RentPayment) => (
             <Card key={payment.id} className="transition-colors hover:bg-accent/50">
               <CardContent className="pt-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import type { MaintenanceRequest } from "@/lib/types"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -147,7 +148,7 @@ export default async function MaintenancePage() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {requests.map((request: any) => {
+          {requests.map((request: MaintenanceRequest) => {
             const StatusIcon = statusIcons[request.status as keyof typeof statusIcons]
             return (
               <Link key={request.id} href={`/dashboard/maintenance/${request.id}`}>
