@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
+import type { Property, FileRecord } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -19,6 +20,12 @@ import {
 } from "lucide-react"
 import { DeleteOwnerButton } from "@/components/owners/delete-owner-button"
 import { EntityFilesSection } from "@/components/files/entity-files-section"
+
+/** A managed property joined with the tenant/payment rollups used on this page. */
+type OwnerProperty = Property & {
+  tenants?: { id: string; status: string }[]
+  rent_payments?: { amount: number; status: string }[]
+}
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0 }).format(amount)
@@ -52,17 +59,17 @@ export default async function OwnerDetailPage({ params }: { params: Promise<{ id
     .eq("owner_id", id)
     .order("name")
 
-  const props = properties || []
+  const props = (properties || []) as OwnerProperty[]
 
   const { data: ownerFiles } = await supabase
     .from("files")
     .select("*, folder:file_folders(id, name)")
     .eq("owner_id", id)
     .order("created_at", { ascending: false })
-  const totalRevenue = props.filter(p => p.status === "occupied").reduce((s: number, p: any) => s + (p.monthly_rent || 0), 0)
-  const totalTenants = props.reduce((s: number, p: any) => s + (p.tenants?.filter((t: any) => t.status === "active").length || 0), 0)
-  const totalCollected = props.reduce((s: number, p: any) => {
-    return s + (p.rent_payments || []).filter((pay: any) => pay.status === "paid").reduce((ss: number, pay: any) => ss + (pay.amount || 0), 0)
+  const totalRevenue = props.filter(p => p.status === "occupied").reduce((s, p) => s + (p.monthly_rent || 0), 0)
+  const totalTenants = props.reduce((s, p) => s + (p.tenants?.filter(t => t.status === "active").length || 0), 0)
+  const totalCollected = props.reduce((s, p) => {
+    return s + (p.rent_payments || []).filter(pay => pay.status === "paid").reduce((ss, pay) => ss + (pay.amount || 0), 0)
   }, 0)
 
   return (
@@ -140,7 +147,7 @@ export default async function OwnerDetailPage({ params }: { params: Promise<{ id
 
       {/* Files & Documents */}
       <EntityFilesSection
-        initialFiles={(ownerFiles as any) || []}
+        initialFiles={(ownerFiles as FileRecord[]) || []}
         ownerId={id}
         title="Files & Documents"
       />
@@ -217,8 +224,8 @@ export default async function OwnerDetailPage({ params }: { params: Promise<{ id
               </div>
             ) : (
               <div className="space-y-3">
-                {props.map((property: any) => {
-                  const activeTenants = (property.tenants || []).filter((t: any) => t.status === "active").length
+                {props.map((property) => {
+                  const activeTenants = (property.tenants || []).filter(t => t.status === "active").length
                   return (
                     <Link key={property.id} href={`/dashboard/properties/${property.id}`}>
                       <div className="flex items-center justify-between p-3.5 rounded-xl border border-border hover:border-primary/30 hover:bg-accent/30 transition-all cursor-pointer">

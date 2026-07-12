@@ -15,8 +15,8 @@ const eslintConfig = [
   {
     plugins: { "@typescript-eslint": tseslint.plugin },
     rules: {
-      // Tightened to "error" in a follow-up once the view layer is fully typed.
-      "@typescript-eslint/no-explicit-any": "warn",
+      // The view layer is now typed against lib/types.ts; keep it that way.
+      "@typescript-eslint/no-explicit-any": "error",
       // React 19's new React-Compiler-oriented hook rules fire on idiomatic
       // patterns we rely on today (fetch-on-mount, the shadcn useIsMobile
       // media-query hook, a render-scoped running-balance accumulator) as well

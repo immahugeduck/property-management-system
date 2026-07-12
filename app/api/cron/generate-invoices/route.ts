@@ -4,6 +4,9 @@ import { createNotification, notificationTemplates } from "@/lib/notifications"
 import { sendEmail } from "@/lib/email"
 import { newInvoiceEmail, siteUrl } from "@/lib/email-templates"
 import { getFromName } from "@/lib/profile"
+import type { Tenant } from "@/lib/types"
+
+type InvoiceTenant = Pick<Tenant, "id" | "first_name" | "last_name" | "email" | "auth_user_id">
 
 function periodLabel(date: Date) {
   return date.toLocaleDateString("en-US", { month: "long", year: "numeric" })
@@ -76,7 +79,7 @@ export async function GET(request: NextRequest) {
     await supabase.from("rent_schedules").update({ last_generated_for: periodKey }).eq("id", s.id)
     created++
 
-    const tenant = s.tenant as any
+    const tenant = s.tenant as InvoiceTenant | null
     const label = periodLabel(periodStart)
 
     if (tenant?.auth_user_id) {

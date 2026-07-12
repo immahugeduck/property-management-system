@@ -1,12 +1,12 @@
 import "server-only"
+import type { SupabaseClient } from "@supabase/supabase-js"
 
 /**
  * Fetches the manager's configured email display name from user_profiles.
  * Falls back to "Property HQ" if not set. Accepts any Supabase client
  * (server client or service role) so it works in actions and cron routes.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function getFromName(supabase: any, userId: string): Promise<string> {
+export async function getFromName(supabase: SupabaseClient, userId: string): Promise<string> {
   try {
     const { data } = await supabase
       .from("user_profiles")

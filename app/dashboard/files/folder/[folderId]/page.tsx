@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import type { FileRecord } from "@/lib/types"
 import { notFound, redirect } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -30,7 +31,7 @@ export default async function FolderPage({
 
   // Build breadcrumb trail by walking parent_id chain
   const breadcrumbs: { id: string; name: string }[] = []
-  let current = folder
+  let current: { id: string; name: string; parent_id: string | null } = folder
   while (current.parent_id) {
     const { data: parent } = await supabase
       .from("file_folders")
@@ -39,7 +40,7 @@ export default async function FolderPage({
       .single()
     if (!parent) break
     breadcrumbs.unshift({ id: parent.id, name: parent.name })
-    current = parent as any
+    current = parent
   }
 
   const [subFoldersResult, filesResult] = await Promise.all([
@@ -137,7 +138,7 @@ export default async function FolderPage({
             FILES ({files.length})
           </h2>
         )}
-        <FileList files={files as any} showEntity />
+        <FileList files={files as FileRecord[]} showEntity />
       </div>
 
       {subFolders.length === 0 && files.length === 0 && (

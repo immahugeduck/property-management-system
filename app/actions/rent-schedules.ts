@@ -4,6 +4,9 @@ import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import { createNotification, notificationTemplates } from "@/lib/notifications"
 import { sendEmail } from "@/lib/email"
+import type { Tenant } from "@/lib/types"
+
+type InvoiceTenant = Pick<Tenant, "id" | "first_name" | "last_name" | "email" | "auth_user_id">
 
 function periodLabel(date: Date) {
   return date.toLocaleDateString("en-US", { month: "long", year: "numeric" })
@@ -129,7 +132,7 @@ export async function generateDueInvoices() {
     created++
 
     // Notify the tenant (if their portal is active) that a new invoice is ready.
-    const tenant = (s as any).tenant
+    const tenant = s.tenant as InvoiceTenant | null
     if (tenant?.auth_user_id) {
       const label = periodLabel(periodStart)
       const tmpl = notificationTemplates.invoiceIssued(s.amount, label)

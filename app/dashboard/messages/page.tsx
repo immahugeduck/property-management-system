@@ -38,7 +38,7 @@ export default async function MessagesPage() {
 
   // Group messages into per-tenant conversations.
   const convoMap = new Map<string, Conversation>()
-  for (const m of (messages as any[]) ?? []) {
+  for (const m of (messages as Message[]) ?? []) {
     if (!m.tenant_id) continue
     const existing = convoMap.get(m.tenant_id)
     const isUnread = !m.is_read && m.sender_role === "tenant"

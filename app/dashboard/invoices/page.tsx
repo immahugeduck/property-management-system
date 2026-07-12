@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import type { RentPayment } from "@/lib/types"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -182,7 +183,7 @@ export default async function InvoicesPage({
               <span>Status</span>
             </div>
             <div className="divide-y divide-border">
-              {allInvoices.map((invoice: any) => {
+              {allInvoices.map((invoice: RentPayment) => {
                 const cfg = statusConfig[invoice.status as keyof typeof statusConfig] || statusConfig.pending
                 const invNum = invoiceNumber(invoice.id, invoice.created_at)
                 return (

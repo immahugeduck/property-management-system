@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import type { FileRecord } from "@/lib/types"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -139,7 +140,7 @@ export default async function FilesPage() {
       {rootFiles.length > 0 && (
         <div>
           <h2 className="text-sm font-medium text-muted-foreground mb-3">FILES</h2>
-          <FileList files={rootFiles as any} showEntity />
+          <FileList files={rootFiles as FileRecord[]} showEntity />
         </div>
       )}
 

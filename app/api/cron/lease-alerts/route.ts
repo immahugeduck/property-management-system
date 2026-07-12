@@ -48,7 +48,8 @@ export async function GET(request: NextRequest) {
     if (!tenant.lease_end) continue
 
     const days = daysUntil(tenant.lease_end)
-    const propertyName = (tenant.property as any)?.name || "their unit"
+    // Supabase types the to-one embed as an array; at runtime it is a single object.
+    const propertyName = (tenant.property as unknown as { name: string } | null)?.name || "their unit"
 
     // Alert windows: 60-day and 30-day. Run weekly so ±3 days is the tolerance.
     const is60Day = days >= 57 && days <= 63
