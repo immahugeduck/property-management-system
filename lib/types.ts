@@ -35,6 +35,8 @@ export interface Tenant {
   portal_enabled: boolean
   invited_at: string | null
   portal_activated_at: string | null
+  /** Normalized copy of `phone` (+1XXXXXXXXXX), maintained by the database. */
+  phone_e164?: string | null
   created_at: string
   updated_at: string
   property?: Property | null
@@ -125,6 +127,13 @@ export interface MaintenanceRequest {
   notes: string | null
   photo_paths: string[] | null
   reported_by_name: string | null
+  /** Short number staff can reference by text, e.g. "1042 done". */
+  job_number?: number
+  source?: 'app' | 'sms' | 'voice'
+  scheduled_at?: string | null
+  /** Set by the database when status becomes 'completed'. */
+  completed_at?: string | null
+  completion_notified_at?: string | null
   created_at: string
   updated_at: string
   vendor_id?: string | null
@@ -321,4 +330,41 @@ export interface DashboardStats {
   pendingPayments: number
   overduePayments: number
   openMaintenanceRequests: number
+}
+
+/** Settings for the maintenance text/call line (one row per manager). */
+export interface TriageSettings {
+  user_id: string
+  twilio_number: string
+  maintenance_phone: string | null
+  maintenance_email: string | null
+  manager_phone: string | null
+  manager_email: string | null
+  timezone: string
+  open_days: number[]
+  open_time: string
+  close_time: string
+  emergency_reply: string
+  created_at: string
+  updated_at: string
+}
+
+/** One text or call on the maintenance line. Written only by the triage service. */
+export interface SmsMessage {
+  id: string
+  user_id: string
+  direction: 'inbound' | 'outbound'
+  channel: 'sms' | 'voice'
+  party: 'tenant' | 'maintenance' | 'manager' | 'unknown'
+  kind: 'message' | 'new_request_alert' | 'emergency_alert' | 'schedule_notice' | 'completion_notice'
+  from_number: string
+  to_number: string
+  body: string
+  twilio_sid: string | null
+  status: string | null
+  error: string | null
+  tenant_id: string | null
+  maintenance_request_id: string | null
+  completed_at: string | null
+  created_at: string
 }

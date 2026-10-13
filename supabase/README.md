@@ -6,6 +6,7 @@ live project on 2026-10-13 so the database can be rebuilt anywhere.
 | Path | What it is |
 | --- | --- |
 | `schema.sql` | Full schema snapshot: 19 tables, constraints, indexes, functions, triggers, row-level security on every table (61 policies), the `property-files` storage bucket and its 4 policies. No data, no secrets. |
+| `migrations/*.sql` | Changes made after the snapshot, applied in filename order. |
 | `functions/*/index.ts` | Source of the 3 edge functions deployed in the project (`process-monthly-rent`, `create-stripe-payment`, `stripe-webhook`). |
 
 Source project: `supabase-propertyhq`, ref `fxmlwozvjzzntorolhtv` (us-east-1).
@@ -21,7 +22,8 @@ base tables were created.
 ## Rebuilding on a new Supabase project
 
 1. Create the project, then open **SQL Editor** and run `supabase/schema.sql`
-   once, on the empty database.
+   once, on the empty database, followed by each file in
+   `supabase/migrations/` in filename order.
 2. In **Authentication → URL Configuration**, set the site URL and redirect
    URLs for the Vercel deployment (see `NEXT_PUBLIC_SITE_URL` and
    `NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL` in the app).
