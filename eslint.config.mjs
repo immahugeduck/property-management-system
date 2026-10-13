@@ -9,6 +9,8 @@ const eslintConfig = [
       "next-env.d.ts",
       "public/**",
       "scripts/**",
+      // Deno edge functions (npm: imports, Deno globals); not part of the Next.js app.
+      "supabase/functions/**",
     ],
   },
   ...next,
