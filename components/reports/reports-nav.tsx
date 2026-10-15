@@ -3,13 +3,14 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { TrendingUp, Receipt, CreditCard, FileText, Building2, Wrench } from "lucide-react"
+import { TrendingUp, Receipt, CreditCard, FileText, Building2, Wrench, UserRound } from "lucide-react"
 
 const groups = [
   {
     label: "Financial",
     items: [
       { name: "Profit & Loss", href: "/dashboard/reports/profit-loss", icon: TrendingUp },
+      { name: "Owner Statements", href: "/dashboard/reports/owners", icon: UserRound },
       { name: "Expense Report", href: "/dashboard/reports/expenses", icon: Receipt },
     ],
   },

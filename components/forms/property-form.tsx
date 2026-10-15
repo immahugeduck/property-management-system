@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Spinner } from "@/components/ui/spinner"
-import { Building2, MapPin, Home, DollarSign, FileText, Info } from "lucide-react"
+import { Building2, MapPin, Home, DollarSign, FileText, Info, UserRound } from "lucide-react"
 import type { Property } from "@/lib/types"
 
 interface PropertyFormProps {
@@ -67,6 +67,19 @@ export function PropertyForm({ property, userId }: PropertyFormProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const [owners, setOwners] = useState<{ id: string; first_name: string; last_name: string; company_name: string | null }[]>([])
+  const [ownerId, setOwnerId] = useState(property?.owner_id || "unassigned")
+  useEffect(() => {
+    let active = true
+    createClient().from("property_owners").select("id,first_name,last_name,company_name").eq("user_id", userId).order("last_name").then(({data,error}) => {
+      if (active) {
+        if (error) setError("Unable to load property owners: " + error.message)
+        else setOwners(data || [])
+      }
+    })
+    return () => { active = false }
+  }, [userId])
+
   const isEditing = !!property
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -77,6 +90,7 @@ export function PropertyForm({ property, userId }: PropertyFormProps) {
     const formData = new FormData(e.currentTarget)
     const data = {
       user_id: userId,
+      owner_id: ownerId === "unassigned" ? null : ownerId,
       name: formData.get("name") as string,
       address: formData.get("address") as string,
       city: formData.get("city") as string,
@@ -180,6 +194,21 @@ export function PropertyForm({ property, userId }: PropertyFormProps) {
                 </Select>
                 <FieldHint>Property type affects reporting categories</FieldHint>
               </div>
+            </div>
+          </FormSection>
+
+          {/* Property Ownership */}
+          <FormSection icon={UserRound} title="Property Owner" description="Associate this property with an owner for management and reporting.">
+            <div className="space-y-2">
+              <Label htmlFor="owner_id">Assigned Owner</Label>
+              <Select value={ownerId} onValueChange={setOwnerId}>
+                <SelectTrigger id="owner_id"><SelectValue placeholder="Select owner" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="unassigned">Unassigned</SelectItem>
+                  {owners.map(owner => <SelectItem key={owner.id} value={owner.id}>{owner.first_name} {owner.last_name}{owner.company_name ? ` (${owner.company_name})` : ""}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <FieldHint>Create new owners from the Owners dashboard tab.</FieldHint>
             </div>
           </FormSection>
 

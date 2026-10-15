@@ -39,12 +39,16 @@ export default async function OwnersPage() {
           <h1 className="text-2xl font-bold text-foreground">Property Owners</h1>
           <p className="text-muted-foreground text-sm">Owners of properties you manage</p>
         </div>
+        <div className="flex flex-wrap gap-2">
+        <Button variant="outline" asChild><Link href="/dashboard/owners/payouts">Payout Ledger</Link></Button>
+        <Button variant="outline" asChild><Link href="/dashboard/reports/owners">Owner Statements</Link></Button>
         <Button asChild>
           <Link href="/dashboard/owners/new">
             <Plus className="mr-2 h-4 w-4" />
             Add Owner
           </Link>
         </Button>
+        </div>
       </div>
 
       {ownersWithStats.length === 0 ? (
