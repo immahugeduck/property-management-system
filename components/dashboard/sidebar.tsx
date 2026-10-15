@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 import {
   Building2,
   Users,
+  UserRound,
   CreditCard,
   Wrench,
   MessageSquare,
@@ -28,6 +29,7 @@ import { useRouter } from "next/navigation"
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Properties", href: "/dashboard/properties", icon: Building2 },
+  { name: "Owners", href: "/dashboard/owners", icon: UserRound },
   { name: "Tenants", href: "/dashboard/tenants", icon: Users },
   { name: "Payments", href: "/dashboard/payments", icon: CreditCard },
   { name: "Expenses", href: "/dashboard/expenses", icon: Receipt },
