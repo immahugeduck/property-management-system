@@ -1,6 +1,7 @@
 export interface Property {
   id: string
   user_id: string
+  owner_id: string | null
   name: string
   address: string
   city: string
