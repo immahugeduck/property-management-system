@@ -3,16 +3,17 @@ import { createFakeSupabase, type ReadResult } from "@/test/utils/fake-supabase"
 
 // vi.mock factories are hoisted above imports, so the fns they reference must
 // be created via vi.hoisted() to exist at hoist time.
-const { getCurrentTenant, sessionsCreate, createClient } = vi.hoisted(() => ({
+const { getCurrentTenant, sessionsCreate, createClient, createServiceClient } = vi.hoisted(() => ({
   getCurrentTenant: vi.fn(),
   sessionsCreate: vi.fn(),
   createClient: vi.fn(),
+  createServiceClient: vi.fn(),
 }))
 
 vi.mock("@/lib/tenant-auth", () => ({ getCurrentTenant }))
 vi.mock("@/lib/stripe", () => ({ stripe: { checkout: { sessions: { create: sessionsCreate } } } }))
 vi.mock("@/lib/supabase/server", () => ({ createClient }))
-vi.mock("@/lib/supabase/service", () => ({ createServiceClient: vi.fn() }))
+vi.mock("@/lib/supabase/service", () => ({ createServiceClient }))
 vi.mock("@/lib/payments", () => ({ settleInvoicePaid: vi.fn(async () => ({ ok: true })) }))
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }))
 vi.mock("next/headers", () => ({
@@ -78,6 +79,9 @@ describe("createRentCheckout", () => {
       }).client,
     )
 
+    const service = createFakeSupabase()
+    createServiceClient.mockReturnValue(service.client)
+
     const result = await createRentCheckout("inv-1")
 
     expect(sessionsCreate).toHaveBeenCalledTimes(1)
@@ -87,5 +91,10 @@ describe("createRentCheckout", () => {
     expect(arg.metadata.invoice_id).toBe("inv-1")
     expect(result.url).toContain("checkout.stripe.com")
     expect(result.error).toBeUndefined()
+    // Tenants can't UPDATE rent_payments under RLS, so the session id must be
+    // saved with the service client or the success-page reconcile can't find it.
+    expect(service.writes).toEqual([
+      { table: "rent_payments", op: "update", values: { stripe_session_id: "cs_test_123" } },
+    ])
   })
 })

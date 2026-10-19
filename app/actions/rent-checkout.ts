@@ -71,12 +71,15 @@ export async function createRentCheckout(invoiceId: string): Promise<{ url?: str
       cancel_url: `${baseUrl}/portal/payments?canceled=1`,
     })
 
-    // Store the session id so the webhook can match even if metadata is unavailable.
-    await supabase
+    // Store the session id so the success-page reconcile and the webhook can
+    // match it. Tenants have no UPDATE policy on rent_payments, so this must use
+    // the service client; the invoice was already verified as this tenant's above.
+    const { error: saveErr } = await createServiceClient()
       .from("rent_payments")
       .update({ stripe_session_id: session.id })
       .eq("id", invoice.id)
       .eq("tenant_id", tenant.id)
+    if (saveErr) console.error("[v0] Could not save Stripe session id:", saveErr)
 
     return { url: session.url ?? undefined }
   } catch (err) {
