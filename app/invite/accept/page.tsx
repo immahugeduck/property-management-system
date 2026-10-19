@@ -1,8 +1,8 @@
 import Link from "next/link"
-import Image from "next/image"
 import { validateInvite } from "@/app/actions/tenant-invites"
 import { AcceptInviteForm } from "@/components/portal/accept-invite-form"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { BrandLogo } from "@/components/brand-logo"
 
 export default async function AcceptInvitePage({
   searchParams,
@@ -17,7 +17,7 @@ export default async function AcceptInvitePage({
       <div className="w-full max-w-sm">
         <div className="flex flex-col gap-6">
           <Link href="/" className="flex items-center justify-center mb-2">
-            <Image src="/logo.png" alt="Property HQ" width={180} height={50} className="h-10 w-auto object-contain" priority />
+            <BrandLogo className="h-10" priority />
           </Link>
 
           {result.valid ? (

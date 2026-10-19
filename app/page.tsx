@@ -1,5 +1,4 @@
 import Link from "next/link"
-import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {
@@ -12,6 +11,7 @@ import {
   ArrowRight,
   CheckCircle,
 } from "lucide-react"
+import { BrandLogo } from "@/components/brand-logo"
 
 const features = [
   {
@@ -62,7 +62,7 @@ export default function HomePage() {
       <header className="border-b border-border">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center">
-            <Image src="/logo.png" alt="Property HQ" width={160} height={44} className="h-9 w-auto object-contain" priority />
+            <BrandLogo className="h-9" priority />
           </div>
           <div className="flex items-center gap-4">
             <Button variant="ghost" asChild>
@@ -206,7 +206,7 @@ export default function HomePage() {
         <div className="container mx-auto px-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center">
-              <Image src="/logo.png" alt="Property HQ" width={120} height={33} className="h-7 w-auto object-contain" />
+              <BrandLogo className="h-7" />
             </div>
             <p className="text-sm text-muted-foreground">
               Property Management System
