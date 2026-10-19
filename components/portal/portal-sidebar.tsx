@@ -1,12 +1,12 @@
 "use client"
 
 import Link from "next/link"
-import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
 import { LayoutDashboard, CreditCard, MessageSquare, Wrench, Bell, FileSignature, Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { BrandLogo } from "@/components/brand-logo"
 
 const navItems = [
   { href: "/portal", label: "Overview", icon: LayoutDashboard },
@@ -49,14 +49,7 @@ export function PortalSidebar() {
         )}
       >
         <div className="flex h-16 flex-col items-start justify-center gap-0.5 border-b border-border px-4">
-          <Image
-            src="/logo.png"
-            alt="Property HQ"
-            width={140}
-            height={38}
-            className="h-8 w-auto object-contain dark:brightness-0 dark:invert"
-            priority
-          />
+          <BrandLogo className="h-8" priority />
           <p className="text-[10px] text-muted-foreground pl-0.5">Tenant Portal</p>
         </div>
 

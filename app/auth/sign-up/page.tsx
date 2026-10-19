@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
+import { BrandLogo } from "@/components/brand-logo"
 
 export default function Page() {
   const [email, setEmail] = useState('')
@@ -58,7 +59,7 @@ export default function Page() {
       <div className="w-full max-w-sm">
         <div className="flex flex-col gap-6">
           <Link href="/" className="flex items-center justify-center mb-2">
-            <Image src="/logo.png" alt="Property HQ" width={180} height={50} className="h-10 w-auto object-contain" priority />
+            <BrandLogo className="h-10" priority />
           </Link>
           <Card>
             <CardHeader>
