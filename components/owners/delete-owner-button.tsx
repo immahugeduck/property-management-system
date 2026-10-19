@@ -24,17 +24,32 @@ interface DeleteOwnerButtonProps {
 
 export function DeleteOwnerButton({ ownerId, ownerName }: DeleteOwnerButtonProps) {
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
   const handleDelete = async () => {
     setLoading(true)
+    setError(null)
     const supabase = createClient()
-    await supabase.from("property_owners").delete().eq("id", ownerId)
+    const { error: deleteError } = await supabase.from("property_owners").delete().eq("id", ownerId)
+    if (deleteError) {
+      // 23503 = still referenced. Recorded payouts block deletion on purpose
+      // so the payout history can't disappear.
+      setError(
+        deleteError.code === "23503"
+          ? `${ownerName} has recorded payouts, so they can't be deleted. The payout history has to stay on file.`
+          : `Couldn't delete ${ownerName}: ${deleteError.message}`,
+      )
+      setLoading(false)
+      return
+    }
     router.push("/dashboard/owners")
     router.refresh()
   }
 
   return (
+    <>
+    {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
     <AlertDialog>
       <AlertDialogTrigger asChild>
         <Button variant="destructive" size="sm" disabled={loading}>
@@ -57,5 +72,6 @@ export function DeleteOwnerButton({ ownerId, ownerName }: DeleteOwnerButtonProps
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+    </>
   )
 }

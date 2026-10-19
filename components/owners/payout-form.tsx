@@ -12,8 +12,10 @@ export function OwnerPayoutForm({userId,owners}:{userId:string;owners:{id:string
  const [busy,setBusy]=useState(false)
  async function submit(e:React.FormEvent<HTMLFormElement>){
   e.preventDefault()
+  // Keep the form: React clears e.currentTarget once this handler awaits.
+  const form=e.currentTarget
   setBusy(true);setError("")
-  const f=new FormData(e.currentTarget)
+  const f=new FormData(form)
   const amount=Number(f.get("amount"))
   if(!Number.isFinite(amount)||amount<=0){setError("Enter a positive payment amount.");setBusy(false);return}
   const owner_id=String(f.get("owner_id"))
@@ -24,7 +26,7 @@ export function OwnerPayoutForm({userId,owners}:{userId:string;owners:{id:string
    notes:String(f.get("notes")).trim()||null
   })
   if(saveError){setError(saveError.message);setBusy(false);return}
-  e.currentTarget.reset()
+  form.reset()
   setBusy(false)
   router.refresh()
  }
