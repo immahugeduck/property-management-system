@@ -1,7 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import {
@@ -25,6 +24,7 @@ import { Button } from "@/components/ui/button"
 import { useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
+import { BrandLogo } from "@/components/brand-logo"
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -81,14 +81,7 @@ export function Sidebar() {
       >
         {/* Logo */}
         <div className="flex h-16 items-center border-b border-border px-4">
-          <Image
-            src="/logo.png"
-            alt="Property HQ"
-            width={160}
-            height={44}
-            className="h-9 w-auto object-contain dark:brightness-0 dark:invert"
-            priority
-          />
+          <BrandLogo className="h-9" priority />
         </div>
 
         {/* Navigation */}
