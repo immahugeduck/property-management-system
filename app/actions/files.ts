@@ -167,6 +167,37 @@ export async function deleteFile(fileId: string) {
   return { success: true }
 }
 
+export async function moveFile(fileId: string, folderId: string | null) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: "Not authenticated" }
+
+  // Only allow moving into one of the signed-in manager's own folders.
+  if (folderId) {
+    const { data: folder } = await supabase
+      .from("file_folders")
+      .select("id")
+      .eq("id", folderId)
+      .eq("user_id", user.id)
+      .maybeSingle()
+    if (!folder) return { error: "Folder not found" }
+  }
+
+  const { data, error } = await supabase
+    .from("files")
+    .update({ folder_id: folderId })
+    .eq("id", fileId)
+    .eq("user_id", user.id)
+    .select("id")
+    .maybeSingle()
+
+  if (error) return { error: error.message }
+  if (!data) return { error: "File not found" }
+  // "layout" also refreshes every /dashboard/files/folder/[id] page.
+  revalidatePath("/dashboard/files", "layout")
+  return { success: true }
+}
+
 export async function getFileSignedUrl(storagePath: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

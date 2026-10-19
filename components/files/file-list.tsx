@@ -1,7 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { deleteFile, getFileSignedUrl } from "@/app/actions/files"
+import { deleteFile, getFileSignedUrl, moveFile } from "@/app/actions/files"
+import type { FolderOption } from "@/lib/folder-paths"
 import { FileRecord } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -17,13 +18,23 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import {
-  FileText, File, Image, FileSpreadsheet, Trash2, Download, Loader2,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  FileText, File, Image, FileSpreadsheet, Trash2, Download, Loader2, FolderInput, Folder, Home,
 } from "lucide-react"
 import { toast } from "sonner"
 
 interface FileListProps {
   files: FileRecord[]
   showEntity?: boolean
+  /** When given, each file gets a "Move to folder" menu listing these. */
+  folders?: FolderOption[]
 }
 
 function formatBytes(bytes: number) {
@@ -49,9 +60,29 @@ function FileIcon({ mimeType }: { mimeType: string | null }) {
   return <File className="h-5 w-5 text-muted-foreground" />
 }
 
-function FileRow({ file, showEntity }: { file: FileRecord; showEntity?: boolean }) {
+function FileRow({
+  file,
+  showEntity,
+  folders,
+}: {
+  file: FileRecord
+  showEntity?: boolean
+  folders?: FolderOption[]
+}) {
   const [downloading, setDownloading] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [moving, setMoving] = useState(false)
+
+  const handleMove = async (folderId: string | null, label: string) => {
+    setMoving(true)
+    const result = await moveFile(file.id, folderId)
+    setMoving(false)
+    if (result.error) {
+      toast.error(result.error)
+    } else {
+      toast.success(`Moved to ${label}`)
+    }
+  }
 
   const handleDownload = async () => {
     setDownloading(true)
@@ -128,6 +159,49 @@ function FileRow({ file, showEntity }: { file: FileRecord; showEntity?: boolean 
             <Download className="h-4 w-4" />
           )}
         </Button>
+        {folders && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                disabled={moving}
+                title="Move to folder"
+              >
+                {moving ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <FolderInput className="h-4 w-4" />
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="max-h-80 overflow-y-auto">
+              <DropdownMenuLabel>Move to</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                disabled={!file.folder_id}
+                onSelect={() => handleMove(null, "Files")}
+              >
+                <Home className="h-4 w-4" />
+                Files (top level)
+              </DropdownMenuItem>
+              {folders.map((folder) => (
+                <DropdownMenuItem
+                  key={folder.id}
+                  disabled={folder.id === file.folder_id}
+                  onSelect={() => handleMove(folder.id, folder.label)}
+                >
+                  <Folder className="h-4 w-4 text-amber-500" />
+                  {folder.label}
+                </DropdownMenuItem>
+              ))}
+              {folders.length === 0 && (
+                <DropdownMenuItem disabled>No folders yet</DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button
@@ -167,7 +241,7 @@ function FileRow({ file, showEntity }: { file: FileRecord; showEntity?: boolean 
   )
 }
 
-export function FileList({ files, showEntity = false }: FileListProps) {
+export function FileList({ files, showEntity = false, folders }: FileListProps) {
   if (files.length === 0) {
     return (
       <div className="py-8 text-center">
@@ -180,7 +254,7 @@ export function FileList({ files, showEntity = false }: FileListProps) {
   return (
     <div className="space-y-2">
       {files.map(file => (
-        <FileRow key={file.id} file={file} showEntity={showEntity} />
+        <FileRow key={file.id} file={file} showEntity={showEntity} folders={folders} />
       ))}
     </div>
   )
