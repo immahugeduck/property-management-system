@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import type { FileRecord } from "@/lib/types"
+import { buildFolderOptions } from "@/lib/folder-paths"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -17,7 +18,7 @@ export default async function FilesPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect("/auth/login")
 
-  const [foldersResult, filesResult, templateCountResult] = await Promise.all([
+  const [foldersResult, filesResult, templateCountResult, allFoldersResult, totalCountResult] = await Promise.all([
     supabase
       .from("file_folders")
       .select("*")
@@ -35,11 +36,21 @@ export default async function FilesPage() {
       .select("id", { count: "exact", head: true })
       .eq("user_id", user.id)
       .eq("is_template", true),
+    supabase
+      .from("file_folders")
+      .select("id, name, parent_id")
+      .eq("user_id", user.id),
+    supabase
+      .from("files")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id),
   ])
 
   const folders = foldersResult.data || []
   const rootFiles = filesResult.data || []
   const templateCount = templateCountResult.count || 0
+  const totalFiles = totalCountResult.count || 0
+  const folderOptions = buildFolderOptions(allFoldersResult.data || [])
 
   return (
     <div className="space-y-6 pt-12 lg:pt-0">
@@ -80,7 +91,7 @@ export default async function FilesPage() {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Total Files</p>
-                <p className="text-xl font-bold">{rootFiles.length}</p>
+                <p className="text-xl font-bold">{totalFiles}</p>
               </div>
             </div>
           </CardContent>
@@ -140,7 +151,7 @@ export default async function FilesPage() {
       {rootFiles.length > 0 && (
         <div>
           <h2 className="text-sm font-medium text-muted-foreground mb-3">FILES</h2>
-          <FileList files={rootFiles as FileRecord[]} showEntity />
+          <FileList files={rootFiles as FileRecord[]} showEntity folders={folderOptions} />
         </div>
       )}
 

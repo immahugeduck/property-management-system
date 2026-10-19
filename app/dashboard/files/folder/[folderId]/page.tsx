@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import type { FileRecord } from "@/lib/types"
+import { buildFolderOptions } from "@/lib/folder-paths"
 import { notFound, redirect } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -43,7 +44,7 @@ export default async function FolderPage({
     current = parent
   }
 
-  const [subFoldersResult, filesResult] = await Promise.all([
+  const [subFoldersResult, filesResult, allFoldersResult] = await Promise.all([
     supabase
       .from("file_folders")
       .select("*")
@@ -56,10 +57,15 @@ export default async function FolderPage({
       .eq("user_id", user.id)
       .eq("folder_id", folderId)
       .order("created_at", { ascending: false }),
+    supabase
+      .from("file_folders")
+      .select("id, name, parent_id")
+      .eq("user_id", user.id),
   ])
 
   const subFolders = subFoldersResult.data || []
   const files = filesResult.data || []
+  const folderOptions = buildFolderOptions(allFoldersResult.data || [])
 
   return (
     <div className="space-y-6 pt-12 lg:pt-0">
@@ -138,7 +144,7 @@ export default async function FolderPage({
             FILES ({files.length})
           </h2>
         )}
-        <FileList files={files as FileRecord[]} showEntity />
+        <FileList files={files as FileRecord[]} showEntity folders={folderOptions} />
       </div>
 
       {subFolders.length === 0 && files.length === 0 && (
